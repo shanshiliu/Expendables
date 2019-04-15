@@ -64,7 +64,8 @@ export default {
       "i-modal": "/static/iview/modal/index",
       "i-count-down": "/static/iview/count-down/index",
       "i-icon": "/static/iview/icon/index",
-      "i-toast": "/static/iview/toast/index"
+      "i-toast": "/static/iview/toast/index",
+      "i-action-sheet": "/static/iview/action-sheet/index"
     }
   }
 }

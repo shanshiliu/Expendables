@@ -1,5 +1,10 @@
-#menu_modal  .i-modal-main {
-    width: 100%;
-    bottom: 0px;
-    position: fixed;
+
+.action_sheets {
+    height: 50%;
+    overflow-y: scroll;
+}
+.box_bottom .btn_question {
+    width: 30%;
+    margin: 10%;
+    display: inline-block;
 }

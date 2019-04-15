@@ -17,4 +17,9 @@ export default {
   -webkit-transition: width 2s;
   -o-transition: width 2s;
 }
+.action_sheet .i-as-show {
+    height: 50%;
+    margin: 10px;
+    overflow: scroll;
+}
 </style>

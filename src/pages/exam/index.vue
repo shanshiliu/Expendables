@@ -32,15 +32,29 @@
 			</view>
 		</div>
 		<div class="box_bottom">
-			<button type="default" size="mini" :disabled="currentSubject===1"
+			<!-- <button type="default" size="mini" :disabled="currentSubject===1"
 			 bindtap="mini"  @click="prevHandle">上一题</button>
 			 <button type="primary" size="mini" :disabled="currentSubject===total"
-			 bindtap="mini" @click="nextHandle">下一题</button>
+			 bindtap="mini" @click="nextHandle">下一题</button> -->
+			 <i-button i-class="btn_question" @click="prevHandle" :disabled="currentSubject===1">上一题</i-button>
+			 <i-button i-class="btn_question" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
 		</div>
 		<div class="float_menu icon-item" @click="openModal">
 			<dd class="icon ub-box ub-ver iconfont icon-liebiaoshitucaidan"></dd>
 		</div>
-		<i-modal id="menu_modal" :visible="visible" bind:ok="handleClose" 
+		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
+		 @cancel="handleClose" i-class="action_sheets">
+			<view slot="header" style="margin: 16px">
+				<!-- <view style="color: #444;font-size: 16px">确定吗？</view> -->
+				<div style="background: red">
+				    <span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
+					@click="selectHandle(index+1)">
+						<span>{{index+1}}</span>
+					</span>
+				</div>
+			</view>
+		</i-action-sheet>
+		<!-- <i-modal i-class="menu_modal" :visible="visible" bind:ok="handleClose" 
 		:show-ok="false" :show-cancel="false" bind:cancel="handleClose">
 			<div>
 				<span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
@@ -48,7 +62,7 @@
 					<span>{{index+1}}</span>
 				</span>
 			</div>
-		</i-modal>
+		</i-modal> -->
     </div>
 </template>
 <script>
@@ -67,6 +81,12 @@ import {formatTime} from '../../utils/common.js'
 					{name: 'CHN', value: 'B.中国', status: 'normal', 'answer': 'true'},
 					{name: 'BRA', value: 'c.巴西', status: 'normal'},
 					{name: 'JPN', value: 'd.日本', status: 'normal'},
+				],
+				actions: [
+					{
+						name: '删除',
+						color: '#ed3f14'
+					}
 				],
 				targetTime: 0,
 				clearTimer: false,
@@ -144,11 +164,7 @@ import {formatTime} from '../../utils/common.js'
 		width: 100%;
 		line-height: 40px;
 	}
-	.box_bottom button {
-		width: 30%;
-		margin: 10%;
-		display: inline-block;
-	}
+	
 	.float_menu {
 		width: 30px;
 		height: 30px;
@@ -156,11 +172,6 @@ import {formatTime} from '../../utils/common.js'
 		right: 5px;
 		border: 1px solid #06c1ae;
 		bottom: 20px;
-	}
-	#menu_modal  .i-modal-main {
-		width: 100%;
-		bottom: 0px;
-		position: fixed;
 	}
 	.select_box span {
 		width: 25px;
@@ -204,5 +215,8 @@ import {formatTime} from '../../utils/common.js'
 	.type-title {
 		display: inline-block;
 	}
-    .icon{width: 30px;height: 30px;border-radius: 50%;color: #06c1ae;font-size: 24px}
+	.icon{width: 30px;height: 30px;border-radius: 50%;color: #06c1ae;font-size: 24px}
+    .action_sheet .i-as-show {
+		height: 50%;
+	}
 </style>
