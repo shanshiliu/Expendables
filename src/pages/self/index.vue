@@ -5,7 +5,7 @@
          <image :src="userInfo.avatarUrl" class="head-img" mode="aspectFill"></image>
       </dd>
       <dd class="ub-flex-1 z-font-size-18 z-color-333 ub-box ub-ver-v z-padding-h-10-px">
-        <button v-if="isLogin===false" class="loginBtn" lang="zh_CN" open-type="getUserInfo" @getuserinfo="onGetUserInfo">登录</button>
+        <button v-if="isLogin===false" class="loginBtn" lang="zh_CN" open-type="getUserInfo" @getuserinfo="onGetUserInfo" @click.stop="$openWin('/pages/login/main')">登录</button>
         <ul v-if="isLogin===true" class="ub-box z-margin-left-10-px ub-col">
           <li class="z-font-size-16 z-color-333 z-margin-bottom-5-px">{{userInfo.nickName}}</li>
           <li class="z-font-size-14 z-color-888">{{userInfo.province}} {{userInfo.city}} {{userInfo.gender}}</li>

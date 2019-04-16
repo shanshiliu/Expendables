@@ -34,6 +34,7 @@ export default {
       'pages/exam/main',
       'pages/search/main',
       'pages/error/main',
+      'pages/login/main',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -43,9 +44,9 @@ export default {
       // enablePullDownRefresh: true
     },
     tabBar: {
-      borderStyle: 'white',
+      borderStyle: 'black',
       backgroundColor: '#fff',
-      selectedColor: '#06c1ae',
+      selectedColor: '#2d8cf0',
       color: '#666',
       list: [{
         pagePath: "pages/index/main",
@@ -65,7 +66,8 @@ export default {
       "i-count-down": "/static/iview/count-down/index",
       "i-icon": "/static/iview/icon/index",
       "i-toast": "/static/iview/toast/index",
-      "i-action-sheet": "/static/iview/action-sheet/index"
+      "i-action-sheet": "/static/iview/action-sheet/index",
+      "i-input": "/static/iview/input/index"
     }
   }
 }
