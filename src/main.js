@@ -15,6 +15,9 @@ Vue.prototype.$ajax = Ajax
 // 把store挂载到Vue原型上
 Vue.prototype.$store = store
 
+import { $Toast } from '../static/iview/base/index';
+Vue.prototype.$toast = $Toast
+
 const app = new Vue(App)
 app.$mount()
 
@@ -35,6 +38,8 @@ export default {
       'pages/search/main',
       'pages/error/main',
       'pages/login/main',
+      'pages/register/main',
+      'pages/forgetPassword/main',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -67,7 +72,8 @@ export default {
       "i-icon": "/static/iview/icon/index",
       "i-toast": "/static/iview/toast/index",
       "i-action-sheet": "/static/iview/action-sheet/index",
-      "i-input": "/static/iview/input/index"
+      "i-input": "/static/iview/input/index",
+      "i-toast": "/static/iview/toast/index"
     }
   }
 }

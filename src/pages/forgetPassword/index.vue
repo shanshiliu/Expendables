@@ -2,16 +2,15 @@
     <div class="login_section">
 			<div class="login">
 				<div class="welcome">
-					welcome
+					注册页面
 				</div>
 				<div class="login-form">
-					<div class="login-inp"><label>登录</label><input v-model="phoneNumber" type="digit" placeholder="请输入手机号"></div>
+					<div class="login-inp"><label>手机号</label><input v-model="phoneNumber" type="digit" placeholder="请输入手机号"></div>
 					<div class="login-inp"><label>密码</label><input v-model="password" type="password" placeholder="请输入密码"></div>
-					<div class="login-inp"><span @click="submitForm">立即登录</span></div>
+					<div class="login-inp"><label>确认密码</label><input v-model="password" type="password" placeholder="请输入密码"></div>
+					<div class="login-inp"><span @click="submitForm">立即注册</span></div>
 				</div>
-				<div class="login-txt" >
-				<span @click.stop="$openWin('/pages/register/main')">立即注册</span>|
-				<span @click.stop="$openWin('/pages/forgerPassword/main')">忘记密码？</span></div>
+				<div class="login-txt"><span>立即注册</span>|<span>忘记密码？</span></div>
 			</div>
 			<i-toast id="toast" />
     </div>

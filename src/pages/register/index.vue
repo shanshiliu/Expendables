@@ -2,16 +2,18 @@
     <div class="login_section">
 			<div class="login">
 				<div class="welcome">
-					welcome
+					注册页面
 				</div>
 				<div class="login-form">
-					<div class="login-inp"><label>登录</label><input v-model="phoneNumber" type="digit" placeholder="请输入手机号"></div>
+					<div class="login-inp"><label>手机号</label><input v-model="phoneNumber" type="digit" placeholder="请输入手机号"></div>
 					<div class="login-inp"><label>密码</label><input v-model="password" type="password" placeholder="请输入密码"></div>
-					<div class="login-inp"><span @click="submitForm">立即登录</span></div>
+					<div class="login-inp"><label>确认密码</label><input v-model="password" type="password" placeholder="请再次确认密码"></div>
+					<div class="login-inp po"><label>验证码</label><input v-model="password" type="number">
+					<button class="send" :disabled="showBtn" @click="countDown">{{content}}</button>
+					</div>
+					<div class="login-inp"><span @click="submitForm">立即注册</span></div>
 				</div>
-				<div class="login-txt" >
-				<span @click.stop="$openWin('/pages/register/main')">立即注册</span>|
-				<span @click.stop="$openWin('/pages/forgerPassword/main')">忘记密码？</span></div>
+				<!-- <div class="login-txt"><span>立即注册</span>|<span>忘记密码？</span></div> -->
 			</div>
 			<i-toast id="toast" />
     </div>
@@ -23,6 +25,10 @@ import {formatTime} from '../../utils/common.js'
 			return {
 				phoneNumber: '',
 				password: '',
+				passwordT: '',
+				showBtn: false,
+				totalTime: 60,
+				content: '发送验证码',
 			}
 		},
 		mounted() {
@@ -32,25 +38,26 @@ import {formatTime} from '../../utils/common.js'
 			console.log(this.targetTime)
 		},
 		methods: {
+			countDown() {
+				if (this.showBtn) {
+					return
+				}
+				this.showBtn = true;
+				console.log(88888888)
+				this.content = this.totalTime + 's后重新发送' //这里解决60秒不见了的问题
+				let clock = setInterval(() => {
+				this.totalTime--
+				this.content = this.totalTime + 's后重新发送'
+				if (this.totalTime < 0) {     //当倒计时小于0时清除定时器
+					clearInterval(clock)
+					this.content = '发送验证码'
+					this.totalTime = 60
+					this.showBtn = false
+					}
+				},1000)
+			},
 			submitForm() {
-				if (!this.phoneNumber) {
-					this.$toast({
-						content: '请输入手机号',
-						type: 'error'
-					});
-					return
-				}
-				if (!this.password) {
-					this.$toast({
-						content: '请输入密码',
-						type: 'error'
-					});
-					return
-				}
-				this.$toast({
-					content: '手机或密码输入错误',
-					type: 'error'
-				});
+				
 			},
 			changeNumber(value) {
 				console.log('888888888888',value)
@@ -100,7 +107,7 @@ import {formatTime} from '../../utils/common.js'
 
 .welcome {
     width: 100%;
-	margin: 25% 0;
+	margin: 15% 0;
 	text-align: center;
 	color: #fff;
 	font-size: 20px;
@@ -113,7 +120,7 @@ import {formatTime} from '../../utils/common.js'
 .login-inp {
     margin: 0 30px 15px 30px;
     border: 1px solid #fff;
-    border-radius: 25px;
+    border-radius: 5px;
 }
 
 .login-inp label {
@@ -122,6 +129,22 @@ import {formatTime} from '../../utils/common.js'
     display: inline-block;
 	color: #fff;
 	vertical-align: 6px;
+}
+.po {
+	position: relative;
+}
+.login-inp .send {
+	height:40px;
+	width:120px;
+	position: absolute;;
+	right:0;
+	top:0;
+	line-height:40px;
+	font-size:14px;
+	border-radius:4px;
+	background:#fff;
+	color: #333;
+	z-index: 111;
 }
 
 .login-inp input {
@@ -133,6 +156,7 @@ import {formatTime} from '../../utils/common.js'
 	outline: none;
 	vertical-align: -6px;
 	line-height: 40px;
+	margin-left: 10px;
 }
 
 .login-inp span {
