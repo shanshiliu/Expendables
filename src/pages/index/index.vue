@@ -108,12 +108,12 @@
   }
 </script>
 <style scoped>
-  .container{width:100%;background:#e8e8e8;}
+  .container{width:100%;background:#e8e8e8;margin-top: 20px;}
   .search{background: #f5f5f5;border-radius: 12px;padding: 5px 10px}
   .swiper{height: 120px;width: calc(100% - 16px)}
   .icon-item{width:50%;padding: 10px 13px 0 13px;box-sizing: border-box;border-right:1px solid #ccc;
 border-bottom:1px solid #ccc;}
-  .icon{width: 38px;height: 38px;border-radius: 50%;color: #fff;font-size: 24px}
+  .icon{width: 50px;height: 50px;border-radius: 20%;color: #fff;font-size: 24px}
   .adv{border-right: 2px solid #eee}
   .adv img{width: 50px;height: 50px}
   .good{border-bottom: 1px solid #DDD8CE}

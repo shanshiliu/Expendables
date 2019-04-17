@@ -18,7 +18,7 @@
     <dl class="ub-box ub-col z-margin-top-10-px" style="background:#fff;">
       <dd @click.stop="gotoOrderList()" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
-        <i class="iconfont icon-danju" style="color:#06c1ae;font-size:20px"></i>
+        <i class="iconfont icon-danju" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">购买会员</span>
         </p>
         <p class="ub-box ub-ver">
@@ -27,7 +27,7 @@
       </dd>
       <dd @click.stop="$openWin('/pages/citySelect/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
-        <i class="iconfont icon-hongbao" style="color:#06c1ae;font-size:20px"></i>
+        <i class="iconfont icon-hongbao" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">我的工种 (切换)</span>
         </p>
         <p class="ub-box ub-ver">
@@ -36,7 +36,7 @@
       </dd>
       <dd @click.stop="$openWin('/pages/citySelect/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
-        <i class="iconfont icon-caiwu" style="color:#06c1ae;font-size:20px"></i>
+        <i class="iconfont icon-caiwu" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">选择工种</span>
         </p>
         <p class="ub-box ub-ver">
@@ -45,7 +45,7 @@
       </dd>
        <dd @click.stop="clickCall()" class="z-padding-all-10-px ub-box ub-between">
         <p class="ub-box ub-ver">
-        <i class="iconfont icon-dianhua" style="color:#06c1ae;font-size:20px"></i>
+        <i class="iconfont icon-dianhua" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">客服电话：10107888</span>
         </p>
       </dd>
@@ -98,6 +98,6 @@ export default {
 <style scoped>
   .container{width:100%;height:100vh;background:#e8e8e8;object-fit: cover}
   .head-img{width:70px;height:70px;border-radius:50%;box-shadow:0 0 5px rgba(0,0,0,.2);background:#eee}
-  .loginBtn{font-size:14px;color:#fff;padding:0px 20px;margin-left: 10px;background: #ff5722}
-  .exitBtn{border: 1px solid #06c1ae;padding:7px 15px;color:#06c1ae;border-radius: 3px}
+  .loginBtn{font-size:14px;color:#fff;padding:0px 20px;margin-left: 10px;background: #2d8cf0}
+  .exitBtn{border: 1px solid #2d8cf0;padding:7px 15px;color:#2d8cf0;border-radius: 3px}
 </style>

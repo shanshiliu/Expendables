@@ -50,3 +50,6 @@ export function redirectTo (url) {
 export function backBeaforWin () {
   wx.navigateBack({delta: 1})
 }
+export function reLaunch (url) {
+  wx.reLaunch({url: url})
+}

@@ -16,6 +16,12 @@
 				<!-- <div class="login-txt"><span>立即注册</span>|<span>忘记密码？</span></div> -->
 			</div>
 			<i-toast id="toast" />
+			<i-modal title="注册成功" :visible="visible"  @ok="handleOk" @cancel="handleCancel">
+				<div class="card_txt">
+					<div>如有卡密号，请输入卡密号登录获得更多会员权限</div>
+				    <input class="card_input" v-model="cardNumber" type="text">
+				</div>
+			</i-modal>
     </div>
 </template>
 <script>
@@ -29,6 +35,17 @@ import {formatTime} from '../../utils/common.js'
 				showBtn: false,
 				totalTime: 60,
 				content: '发送验证码',
+				visible: false,
+				cardNumber: '',
+				actions: [
+					{
+						name: '无卡密登录'
+					},
+					{
+						name: '登录',
+						color: '#2d8cf0',
+					}
+				],
 			}
 		},
 		mounted() {
@@ -43,7 +60,7 @@ import {formatTime} from '../../utils/common.js'
 					return
 				}
 				this.showBtn = true;
-				console.log(88888888)
+				// console.log(88888888)
 				this.content = this.totalTime + 's后重新发送' //这里解决60秒不见了的问题
 				let clock = setInterval(() => {
 				this.totalTime--
@@ -57,7 +74,27 @@ import {formatTime} from '../../utils/common.js'
 				},1000)
 			},
 			submitForm() {
+				// this.$toast({
+				// 	content: '注册成功，登录中',
+				// 	type: 'success'
+				// });
+				this.visible = true
+
+			},
+			handleOk(index) {
+				// console.log(index)
+				this.$reLaunch('/pages/index/main')
+				this.visible = false
+				this.$toast({
+					content: '登录成功',
+					type: 'success'
+				});
 				
+			},
+			handleCancel(index) {
+				console.log(index)
+				this.$reLaunch('/pages/index/main')
+				this.visible = false
 			},
 			changeNumber(value) {
 				console.log('888888888888',value)
@@ -178,5 +215,11 @@ import {formatTime} from '../../utils/common.js'
     color: #fff;
 	padding: 0 5px;
 	display: inline-block;
+}
+.card_txt {
+	margin: 0 10px;
+}
+.card_input {
+	border: 1px solid #ccc;
 }
 </style>
