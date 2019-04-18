@@ -41,6 +41,7 @@ export default {
       'pages/login/main',
       'pages/register/main',
       'pages/forgetPassword/main',
+      'pages/buyVip/main',
     ],
     window: {
       backgroundTextStyle: 'light',

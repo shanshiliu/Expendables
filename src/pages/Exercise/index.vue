@@ -28,25 +28,28 @@
 			</div>
 		</div>
 		<div>
-			<view class="view-wrap">
-				<text class="type-title">剩余时间：</text>
-				<i-count-down
-						:target="targetTime"
-						:clear-timer="clearTimer"
-                        :format="myFormat"
-				></i-count-down>
-			</view>
 		</div>
 		<div class="box_bottom">
-			<button type="default" size="mini" :disabled="currentSubject===1"
-			 bindtap="mini"  @click="prevHandle">上一题</button>
-			 <button type="primary" size="mini" :disabled="currentSubject===total"
-			 bindtap="mini" @click="nextHandle">下一题</button>
+			<i-button i-class="btn_question" size="small" @click="prevHandle" :disabled="currentSubject===1">上一题</i-button>
+			<i-button i-class="btn_question" size="small" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
 		</div>
 		<div class="float_menu icon-item" @click="openModal">
-			<dd class="icon ub-box ub-ver iconfont icon-liebiaoshitucaidan"></dd>
+			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
-		<i-modal id="menu_modal" :visible="visible" bind:ok="handleClose" 
+
+		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
+		 @cancel="handleClose" i-class="action_sheets">
+			<view slot="header" style="margin: 16px">
+				<!-- <view style="color: #444;font-size: 16px">确定吗？</view> -->
+				<div style="background: red">
+				    <span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
+					@click="selectHandle(index+1)">
+						<span>{{index+1}}</span>
+					</span>
+				</div>
+			</view>
+		</i-action-sheet>
+		<!-- <i-modal id="menu_modal" :visible="visible" bind:ok="handleClose" 
 		:show-ok="false" :show-cancel="false" bind:cancel="handleClose">
 			<div>
 				<span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
@@ -56,7 +59,7 @@
 			</div>
 		</i-modal>
 
-		<i-toast id="toast" />
+		<i-toast id="toast" /> -->
     </div>
 </template>
 <script>
@@ -92,10 +95,16 @@ const { $Toast } = require('../../../static/iview/base/index');
 		},
 		methods: {
 			prevHandle() {
+				if(this.currentSubject === 1) {
+					return
+				}
 				this.currentSubject --
 				this.isSelect = false
 			},
 			nextHandle() {
+				if(this.currentSubject === this.total) {
+					return
+				}
 				this.currentSubject ++
 				this.isSelect = false
 			},
@@ -148,6 +157,7 @@ const { $Toast } = require('../../../static/iview/base/index');
 	.exam_header {
 		font-size: 14px;
 		color:#333;
+		margin-top: 20px;
 	}
 	.date {
 		font-size: 12px;
@@ -158,7 +168,7 @@ const { $Toast } = require('../../../static/iview/base/index');
 	}
 	.subject {
 		margin: 10px 0;
-		border-left: 3px solid #06c1ae;
+		border-left: 3px solid #2d8cf0;
 		padding-left: 5px;
 	}
 	.title {
@@ -179,7 +189,7 @@ const { $Toast } = require('../../../static/iview/base/index');
 		height: 30px;
 		position: fixed;
 		right: 5px;
-		border: 1px solid #06c1ae;
+		border: 1px solid #2d8cf0;
 		bottom: 20px;
 	}
 	#menu_modal  .i-modal-main {
@@ -197,12 +207,12 @@ const { $Toast } = require('../../../static/iview/base/index');
 		margin: 5px;
 	}
 	.select_box span:hover {
-		color: #06c1ae;
-		border: 1px solid #06c1ae;
+		color: #2d8cf0;
+		border: 1px solid #2d8cf0;
 	}
 	.select_box span:click {
-		color: #06c1ae;
-		border: 1px solid #06c1ae;
+		color: #2d8cf0;
+		border: 1px solid #2d8cf0;
 	}
 	.current_box span {
 		width: 25px;
@@ -211,8 +221,8 @@ const { $Toast } = require('../../../static/iview/base/index');
 		border-radius: 25px;
 		float: left;
 		margin: 5px;
-		color: #06c1ae;
-		border: 1px solid #06c1ae;
+		color: #2d8cf0;
+		border: 1px solid #2d8cf0;
 	}
 	.select_group div{
 		border-radius: 5px;
@@ -233,7 +243,7 @@ const { $Toast } = require('../../../static/iview/base/index');
 		width: 30px;
 		height: 30px;
 		border-radius: 50%;
-		color: #06c1ae;
+		color: #2d8cf0;
 		font-size: 24px
 	}
 </style>

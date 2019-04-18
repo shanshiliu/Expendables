@@ -42,6 +42,8 @@
 		<div class="float_menu icon-item" @click="openModal">
 			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
+
+		
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
@@ -149,6 +151,7 @@ import {formatTime} from '../../utils/common.js'
 	.exam_header {
 		font-size: 14px;
 		color:#333;
+		margin-top: 20px;
 	}
 	.date {
 		font-size: 12px;

@@ -19,7 +19,7 @@
 			<i-modal title="注册成功" :visible="visible"  @ok="handleOk" @cancel="handleCancel">
 				<div class="card_txt">
 					<div>如有卡密号，请输入卡密号登录获得更多会员权限</div>
-				    <input class="card_input" v-model="cardNumber" type="text">
+				    <input class="card_input" v-model="cardNumber" type="text" autofocus>
 				</div>
 			</i-modal>
     </div>

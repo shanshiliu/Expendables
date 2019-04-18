@@ -16,7 +16,7 @@
       </dd>
     </dl>
     <dl class="ub-box ub-col z-margin-top-10-px" style="background:#fff;">
-      <dd @click.stop="gotoOrderList()" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+      <dd @click.stop="$openWin('/pages/buyVip/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-huiyuan" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">购买会员</span>
