@@ -40,7 +40,7 @@
 			 <i-button i-class="btn_question" size="small" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
 		</div>
 		<div class="float_menu icon-item" @click="openModal">
-			<dd class="icon ub-box ub-ver iconfont icon-liebiaoshitucaidan"></dd>
+			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">

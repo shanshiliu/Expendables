@@ -18,7 +18,7 @@
     <dl class="ub-box ub-col z-margin-top-10-px" style="background:#fff;">
       <dd @click.stop="gotoOrderList()" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
-        <i class="iconfont icon-danju" style="color:#2d8cf0;font-size:20px"></i>
+        <i class="iconfont icon-huiyuan" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">购买会员</span>
         </p>
         <p class="ub-box ub-ver">
@@ -27,7 +27,7 @@
       </dd>
       <dd @click.stop="$openWin('/pages/citySelect/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
-        <i class="iconfont icon-hongbao" style="color:#2d8cf0;font-size:20px"></i>
+        <i class="iconfont icon-renyuanxuanzetubiao" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">我的工种 (切换)</span>
         </p>
         <p class="ub-box ub-ver">
@@ -36,7 +36,7 @@
       </dd>
       <dd @click.stop="$openWin('/pages/citySelect/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
-        <i class="iconfont icon-caiwu" style="color:#2d8cf0;font-size:20px"></i>
+        <i class="iconfont icon-xuanzetubiao" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">选择工种</span>
         </p>
         <p class="ub-box ub-ver">

@@ -12,7 +12,7 @@
         </div>
       </dd>
     </dl> -->
-    <scroll-view scroll-y scroll-top="0">
+    <scroll-view scroll-y scroll-top="0" class="scroll_box">
       <!--轮播图-->
       <div class="ub-box ub-ver z-bg-color-fff">
         <swiper class="swiper" indicator-dots="false" autoplay="false" interval="5000" duration="500">
@@ -24,7 +24,7 @@
         </swiper>
       </div>
       <!--图标九宫格入口-->
-      <dl class="ub-box ub-wrap z-padding-v-5-px" style="background:#fff">
+      <dl class="ub-box ub-wrap z-padding-v-5-px">
         <div class="icon-item ub-box ub-col ub-ver" :key="key" v-for="(idx, key) in iconMap">
           <div @click.stop="$openWin(idx.url)">
             <dd class="icon ub-box ub-ver iconfont" :class="key" :style="{background: iconMap[key]['bk']}"></dd>
@@ -79,16 +79,16 @@
           'http://p0.meituan.net/codeman/daa73310c9e57454dc97f0146640fd9f69772.jpg'
         ],
         iconMap: {
-          'icon-caigou': {title: '选择工种', bk: '#EF8B3E', url: '/pages/citySelect/main'}, 
-          'icon-shangpin': {title: '全真题库', bk: '#E4463B', url: '/pages/Exercise/main'},
-          'icon-touchengkongyun': {title: '模拟考试', bk: '#8B67E5', url: '/pages/exam/main'},
-          'icon-daohang': {title: '错题集', bk: '#5DC7B0', url: '/pages/citySelect/main'},
-          'icon-zitigui': {title: '考试记录', bk: '#F3AE42', url: '/pages/citySelect/main'},
-          'icon-jiesuan': {title: '我的收藏', bk: '#5DC1A9', url: '/pages/citySelect/main'},
-          'icon-jijianfasong': {title: '证书查询', bk: '#EC5B6E', url: '/pages/citySelect/main'},
+          'icon-zhiye1': {title: '选择工种', bk: '#EF8B3E', url: '/pages/citySelect/main'}, 
+          'icon-tiku': {title: '全真题库', bk: '#5DC7B0', url: '/pages/Exercise/main'},
+          'icon-monikaoshi': {title: '模拟考试', bk: '#8B67E5', url: '/pages/exam/main'},
+          'icon-cuotiben': {title: '错  题  集', bk: '#E4463B', url: '/pages/citySelect/main'},
+          'icon-icon_kaoshijilu_normal': {title: '考试记录', bk: '#F3AE42', url: '/pages/citySelect/main'},
+          'icon-fav': {title: '我的收藏', bk: '#5DC1A9', url: '/pages/citySelect/main'},
+          'icon-chaxunzhengshu': {title: '证书查询', bk: '#EC5B6E', url: '/pages/citySelect/main'},
           // 'icon-shoucang': {title: '', bk: '#5CA2F2', url: '/pages/citySelect/main'},
           // 'icon-baobiao': {title: 'XXX', bk: '#FD9D21', url: '/pages/citySelect/main'},
-          'icon-pifuzhuti': {title: '帮助反馈', bk: '#BED300', url: '/pages/citySelect/main'},
+          'icon-bangzhufankui1': {title: '帮助反馈', bk: '#BED300', url: '/pages/citySelect/main'},
         },
       }
     },
@@ -108,14 +108,14 @@
   }
 </script>
 <style scoped>
-  .container{width:100%;background:#e8e8e8;margin-top: 20px;}
+  .container{width:100%;background:#e8e8e8;}
   .search{background: #f5f5f5;border-radius: 12px;padding: 5px 10px}
-  .swiper{height: 120px;width: calc(100% - 16px)}
-  .icon-item{width:50%;padding: 10px 13px 0 13px;box-sizing: border-box;border-right:1px solid #ccc;
-border-bottom:1px solid #ccc;}
-  .icon{width: 50px;height: 50px;border-radius: 20%;color: #fff;font-size: 24px}
+  .swiper{height: 120px;width: calc(100%)}
+  .icon-item{width:calc(50% - 20px);margin: 10px;padding: 10px 13px 10px 13px;box-sizing: border-box;border:1px solid #ccc; border-radius: 10px;background: #fff;}
+  .icon{width: 50px;height: 50px;border-radius: 20%;color: #fff;font-size: 30px}
   .adv{border-right: 2px solid #eee}
   .adv img{width: 50px;height: 50px}
   .good{border-bottom: 1px solid #DDD8CE}
   .good img{width: 80px;height: 80px}
+  .scroll_box {background: -webkit-gradient(linear,center top,center bottom,from( #8eaaff), to(#80cc84));}
 </style>
