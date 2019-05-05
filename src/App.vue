@@ -6,6 +6,24 @@ export default {
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
     console.log('app created and cache logs by setStorageSync')
+    //小程序登陆
+    const that = this
+    wx.getSetting({
+      success(res) {
+        console.log(res)
+        if (res.authSetting['scope.userInfo']) {
+          wx.getUserInfo({
+            success: function(res) {
+              console.log(res.userInfo)
+              console.log('用户已经授权过')
+            }
+          })
+        }else{
+          console.log('用户还未授权过')
+          // wx.switchTab({url: '/pages/self/main'})
+        }
+      }
+    })
   }
 }
 </script>

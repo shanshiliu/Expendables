@@ -1,12 +1,12 @@
 <template>
     <div class="exam">
         <div class="exam_header">
-			<div>模拟考试 <span class="fr">{{currentSubject}}/{{total}}</span></div>
+			<div>考试记录 <span class="fr">{{currentSubject}}/{{total}}</span></div>
 			<div class="date">考试日期:{{currentDate}}</div>
 		</div>
 		<div class="subject">
 			<div class="title">
-				1.发色发森费萨尔肤色暗访色费萨尔飞洒发而亲仁群二群二翁切尔奇是。（）
+				{{currentQuestion.question}}
 			</div>
 			<div class="select_group">
 				<!-- <radio-group class="radio-group" bindchange="radioChange" color="red">
@@ -16,20 +16,10 @@
 					</label>
 				</radio-group> -->
 				<div :class="{'sub_error':item.status==='error','sub_correct':item.status==='correct'}"
-				 :key="index" v-for="(item,index) in items" @click="selectAnswer(index)">
-					{{item.value}}
+				 :key="index" v-for="(item,index) in currentQuestion.answerList" @click="selectAnswer(index)">
+					{{item}}
 				</div>
 			</div>
-		</div>
-		<div>
-			<view class="view-wrap">
-				<text class="type-title">剩余时间：</text>
-				<i-count-down
-						:target="targetTime"
-						:clear-timer="clearTimer"
-                        :format="myFormat"
-				></i-count-down>
-			</view>
 		</div>
 		<div class="box_bottom">
 			<!-- <button type="default" size="mini" :disabled="currentSubject===1"
@@ -40,8 +30,10 @@
 			 <i-button i-class="btn_question" size="small" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
 		</div>
 		<div class="float_menu icon-item" @click="openModal">
-			<dd class="icon ub-box ub-ver iconfont icon-liebiaoshitucaidan"></dd>
+			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
+
+		
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
@@ -91,13 +83,36 @@ import {formatTime} from '../../utils/common.js'
 				targetTime: 0,
 				clearTimer: false,
 				myFormat: ['时', '分', '秒'],
+				totalQuestion: [],
+				currentQuestion: null,
+				totalArr: [],
 			}
+		},
+		onLoad(options) {
+			console.log(options.code)
+			const that = this
+			wx.request({
+				url: 'http://192.168.0.101:1234/expendables/api/examRecord/getExamRecord?examCode=' + options.code,
+				method: 'GET',
+				header: {
+                    "content-type": "application/json", 
+                    'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
+                },
+				success(res) {
+					that.totalQuestion = res.data.result
+					that.currentQuestion = that.totalQuestion[0]
+					that.total = that.totalQuestion.length
+					that.totalArr = new Array(that.total)
+			    }
+           })
 		},
 		mounted() {
 			this.currentDate = formatTime(new Date())
-			this.totalArr = new Array(100)
 			this.targetTime = new Date().getTime() + 6430000
 			console.log(this.targetTime)
+		},
+		onShow() {
+			wx.setNavigationBarTitle({title: '考试记录'})
 		},
 		methods: {
 			prevHandle() {
@@ -149,6 +164,7 @@ import {formatTime} from '../../utils/common.js'
 	.exam_header {
 		font-size: 14px;
 		color:#333;
+		margin-top: 20px;
 	}
 	.date {
 		font-size: 12px;

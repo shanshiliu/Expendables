@@ -6,7 +6,7 @@
 		</div>
 		<div class="subject">
 			<div class="title">
-				1.发色发森费萨尔肤色暗访色费萨尔飞洒发而亲仁群二群二翁切尔奇是。（）
+				{{currentQuestion.question}}
 			</div>
 			<div class="select_group">
 				<!-- <radio-group class="radio-group" bindchange="radioChange" color="red">
@@ -16,8 +16,8 @@
 					</label>
 				</radio-group> -->
 				<div :class="{'sub_error':item.status==='error','sub_correct':item.status==='correct'}"
-				 :key="index" v-for="(item,index) in items" @click="selectAnswer(index)">
-					{{item.value}}
+				 :key="index" v-for="(item,index) in currentQuestion.answerList" @click="selectAnswer(index)">
+					{{item}}
 				</div>
 			</div>
 		</div>
@@ -93,13 +93,35 @@ import {formatTime} from '../../utils/common.js'
 				targetTime: 0,
 				clearTimer: false,
 				myFormat: ['时', '分', '秒'],
+				totalQuestion: [],
+				currentQuestion: {}
 			}
+		},
+		onLoad() {
+			const that = this
+			wx.request({
+				url: 'http://192.168.0.101:1234/expendables/api/question/exam',
+				method: 'POST',
+				header: {
+                    "content-type": "application/json", 
+                    'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
+                },
+				success(res) {
+					that.totalQuestion = res.data.result
+					that.currentQuestion = that.totalQuestion[0]
+					that.total = that.totalQuestion.length
+					that.totalArr = new Array(that.total)
+					that.targetTime = new Date().getTime() + 6430000
+			    }
+           })
 		},
 		mounted() {
 			this.currentDate = formatTime(new Date())
-			this.totalArr = new Array(100)
-			this.targetTime = new Date().getTime() + 6430000
-			console.log(this.targetTime)
+			
+			// console.log(this.targetTime)
+		},
+		onShow() {
+		    wx.setNavigationBarTitle({title: '模拟考试'})
 		},
 		methods: {
 			prevHandle() {
@@ -107,6 +129,7 @@ import {formatTime} from '../../utils/common.js'
 					return
 				}
 				this.currentSubject --
+				this.currentQuestion = this.totalQuestion[this.currentSubject]
 				this.isSelect = false
 			},
 			nextHandle() {
@@ -114,6 +137,7 @@ import {formatTime} from '../../utils/common.js'
 					return
 				}
 				this.currentSubject ++
+				this.currentQuestion = this.totalQuestion[this.currentSubject]
 				this.isSelect = false
 			},
 			openModal() {
@@ -125,9 +149,34 @@ import {formatTime} from '../../utils/common.js'
 			},
 			selectHandle(value) {
 				this.currentSubject = value
+				this.currentQuestion = this.totalQuestion[this.currentSubject]
 				this.visible = false
 			},
 			selectAnswer(value) {
+				wx.request({
+					url: 'http://192.168.0.101:1234/expendables/api/question/commitExam',
+					method: 'POST',
+					data: [
+						{
+						"code":"11ZJ8478734",
+						"answer":"A,B",
+						"isRight":1
+						},
+						{
+						"code":"53ZJ8492731",
+						"answer":"A,B",
+						"isRight":0
+						}
+					],
+					header: {
+						"content-type": "application/json", 
+						'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
+					},
+					success(res) {
+						console.log(res.data.result)
+						that.cityList = res.data.result
+					}
+				})
 				if (this.isSelect) {
 					return false
 				}

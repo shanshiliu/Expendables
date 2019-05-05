@@ -13,31 +13,7 @@ export function formatTime (date) {
   const t2 = [hour, minute, second].map(formatNumber).join(':')
   return `${t1} ${t2}`
 }
-// 封装Ajax
-export function Ajax (opts, cb=function(){}) {
-  wx.showLoading({title: '请求中...', mask: true})
-  const {url, method='GET', data={}} = opts
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url,
-      data,
-      method,
-      header: {"content-type": "application/json"},
-      success(res) {
-        resolve(res)
-      },
-      fail(err) {
-        reject(err)
-      },
-      complete(res) {
-        setTimeout(() => {
-          wx.hideLoading()
-          cb && cb(res)
-        }, 1000)
-      }
-    })
-  })
-}
+
 // 打开新窗口
 export function openWin (url) {
   wx.navigateTo({url: url})

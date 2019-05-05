@@ -37,7 +37,7 @@
 			<button class="fr"  @click="buyHandle">{{text}}</button>
 		</div>
 
-		<i-modal title="卡密兑换" :visible="visible"  @ok="handleOk" @cancel="handleCancel">
+		<i-modal title="卡密兑换" :visible="visible" @ok="handleOk" @cancel="handleCancel">
 			<div class="card_txt">
 				<div>请输入卡密号登录获得更多会员权限</div>
 				<input class="card_input" v-model="cardNumber" type="text" autofocus>
@@ -54,6 +54,7 @@ import {formatTime} from '../../utils/common.js'
 				text: '兑换',
 				money: 0,
 				visible: false,
+				cardNumber: '',
 			}
 		},
 		mounted() {
@@ -79,14 +80,27 @@ import {formatTime} from '../../utils/common.js'
 				}
 			},
 			handleOk(index) {
-				// console.log(index)
+				wx.request({
+						url: 'http://192.168.0.101:1234/expendables/api/wxUser/activeCard',
+						method: 'POST',
+						data: {
+								"cardCode": this.cardNumber,
+								"cardPassword": "98l4oR5Z1IU1F4UwZ6s7p8FNr"
+							},
+						header: {
+							"content-type": "application/json", 
+							'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
+						},
+						success(res) {
+							
+						}
+				})
 				this.$reLaunch('/pages/self/main')
-				// this.$toast({
-				// 	content: '兑换成功',
-				// 	type: 'success'
-				// });
+				this.$toast({
+					content: '兑换成功',
+					type: 'success'
+				});
 				this.visible = false
-				
 			},
 			handleCancel(index) {
 				this.visible = false

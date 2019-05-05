@@ -1,37 +1,17 @@
 <template>
 	<div class="z-width-100-percent">
-    <scroll-view scroll-y style="height:calc(100vh);" scroll-top="0" :scroll-into-view=currView>
+    <scroll-view scroll-y style="height:calc(100vh);" scroll-top="0" :scroll-into-view="currView">
       <dl class="ub-box ub-col">
-        <!-- <dd class="z-width-100-percent z-margin-bottom-5-px z-bg-color-fff ub-box ub-ver">
-          <div class="search ub-box ub-ver-v">
-            <i class="iconfont icon-sousuo z-color-666 z-font-size-16"></i>
-            <input class="ub-flex-1 z-font-size-14 z-color-666 z-padding-v-5-px z-margin-left-8-px" placeholder="城市/拼音"/>
-          </div>
-        </dd> -->
         <dd class="z-width-100-percent z-bg-color-fff ub-box z-border-bottom-1-eee">
-          <span id="cc" class="z-font-size-14 z-font-weight-bold z-color-333 z-padding-all-8-px">当前工种：无</span>
+          <span class="z-font-size-14 z-font-weight-bold z-color-333 z-padding-all-8-px">当前工种：无</span>
         </dd>
-        <!-- <dd class="z-width-100-percent z-bg-color-fff ub-box">
-          <ul class="ub-box ub-wrap z-padding-all-8-px">
-            <li @click.stop="clickCity(city)" v-for="(city, idx) in visitCityList" :key="idx" class="hotcity z-font-size-14 z-color-333">{{city.name}}</li>
-          </ul>
-        </dd>
-        <dd class="z-width-100-percent z-bg-color-fff ub-box">
-          <span class="z-font-size-14 z-color-333 z-font-weight-bold z-padding-all-8-px">热门城市</span>
-        </dd> -->
-        <!-- <dd class="z-width-100-percent z-bg-color-fff ub-box">
-          <ul class="ub-box ub-wrap z-padding-all-8-px">
-            <li @click.stop="clickCity(city)" v-for="(city, idx) in hotCityList" :key="idx" class="hotcity z-font-size-14 z-color-333">{{city.name}}</li>
-          </ul>
-        </dd> -->
         <dd class="z-width-100-percent z-bg-color-fff ub-box">
           <span class="z-font-size-14 z-color-333 z-font-weight-bold z-padding-all-8-px">分类</span>
         </dd>
         <dd class="ub-box ub-col">
           <div class="z-width-100-percent z-bg-color-fff ub-box ub-col">
-            <!-- <span :id="val.initial" class="ub-flex-1 z-padding-all-8-px z-font-size-14 z-color-888 codeBK">{{val.initial}}</span> -->
             <ul class="ub-box ub-col">
-              <li @click.stop="clickCity(city)" v-for="(city, i) in cityList" :key="i" class="city ub-flex-1 z-font-size-14 z-color-666">{{city.name}}
+              <li @click.stop="clickCity(city)" v-for="(city, i) in cityList" :key="String(i)" class="city ub-flex-1 z-font-size-14 z-color-666">{{city.stype}}
                 <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888 "></i>
               </li>
             </ul>
@@ -39,11 +19,6 @@
         </dd>
       </dl>
     </scroll-view>
-    <!--fixed部分-->
-    <!-- <dl class="fixList ub-box ub-col ub-ver-v">
-      <dt class="z-font-size-12 z-margin-bottom-3-px" style="color:#06c1ae">最近热门</dt>
-      <dd @click.stop="clickCode(val)" v-for="(val, idx) in cityList" :key="idx" class="z-font-size-12" style="margin-bottom:2px;color:#06c1ae;padding:0 50px;">{{val.initial}}</dd>
-    </dl> -->
 	</div>
 </template>
 <script>
@@ -68,42 +43,61 @@
           {zip: "023", name: "重庆"},
           {zip: "025", name: "南京"},
         ],
-        cityList: [],
+        cityList: [
+          {zip: "010", name: "北京"},
+          {zip: "021", name: "上海"},
+        ],
         selectCity: {},
       }
     },
     onLoad() {
-      this.initCityList()
-      this.currView = ''
-      this.currView = 1
+      // this.initAjax()
+      const that = this
+      this.$ajax({url: '/wxUser/getStyle'}, function(res) {
+        that.cityList = res.result
+      })
     },
     methods: {
-      initCityList() {
-        this.cityList = this.visitCityList
-      },
+        async initAjax() {
+          let res = await this.$ajax({url: '/wxUser/getStyle'})
+          this.cityList = res.result
+          console.log(res)
+        },
       clickCode(obj){
         if (obj.list.length < 1) return
         this.currView = obj.initial
       },
       clickCity(city) {
         var that = this
-        if(this.currentMenu === 1) {
-          this.cityList = this.hotCityList
-          this.currentMenu = 2
-        } else {
+        const options = []
+        options.push(city)
           wx.showModal({
             title: '提示',
             content: '是否确定选择此工种吗',
             success(res) {
               if (res.confirm) {
                 console.log('确定')
-                that.$emit('cityService', city.name)
+                wx.request({
+                  url: 'http://192.168.0.101:1234/expendables/api/chooseStyle/commitChoose',
+                  method: 'POST',
+                  data: options,
+                  header: {
+                    "content-type": "application/json", 
+                    'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
+                  },
+                  success(res) {
+                    console.log(res.data.status)
+                    if(res.data.status === 'success') {
+                      that.$reLaunch('/pages/index/main')
+                    }
+                  },
+                })
               } else if (res.cancel) {
                 console.log('取消')
               }
             }
           })
-        }
+
       }
     },
   }

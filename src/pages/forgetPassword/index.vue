@@ -2,17 +2,26 @@
     <div class="login_section">
 			<div class="login">
 				<div class="welcome">
-					注册页面
+					重置密码
 				</div>
 				<div class="login-form">
 					<div class="login-inp"><label>手机号</label><input v-model="phoneNumber" type="digit" placeholder="请输入手机号"></div>
-					<div class="login-inp"><label>密码</label><input v-model="password" type="password" placeholder="请输入密码"></div>
-					<div class="login-inp"><label>确认密码</label><input v-model="password" type="password" placeholder="请输入密码"></div>
-					<div class="login-inp"><span @click="submitForm">立即注册</span></div>
+					<div class="login-inp"><label>重置密码</label><input v-model="password" type="password" placeholder="请输入重置密码"></div>
+					<div class="login-inp"><label>确认密码</label><input v-model="password" type="password" placeholder="请再次确认密码"></div>
+					<div class="login-inp po"><label>验证码</label><input v-model="password" type="number">
+					<button class="send" :disabled="showBtn" @click="countDown">{{content}}</button>
+					</div>
+					<div class="login-inp"><span @click="submitForm">立即找回</span></div>
 				</div>
-				<div class="login-txt"><span>立即注册</span>|<span>忘记密码？</span></div>
+				<!-- <div class="login-txt"><span>立即注册</span>|<span>忘记密码？</span></div> -->
 			</div>
 			<i-toast id="toast" />
+			<i-modal title="注册成功" :visible="visible"  @ok="handleOk" @cancel="handleCancel">
+				<div class="card_txt">
+					<div>如有卡密号，请输入卡密号登录获得更多会员权限</div>
+				    <input class="card_input" v-model="cardNumber" type="text" autofocus>
+				</div>
+			</i-modal>
     </div>
 </template>
 <script>
@@ -22,6 +31,21 @@ import {formatTime} from '../../utils/common.js'
 			return {
 				phoneNumber: '',
 				password: '',
+				passwordT: '',
+				showBtn: false,
+				totalTime: 60,
+				content: '发送验证码',
+				visible: false,
+				cardNumber: '',
+				actions: [
+					{
+						name: '无卡密登录'
+					},
+					{
+						name: '登录',
+						color: '#2d8cf0',
+					}
+				],
 			}
 		},
 		mounted() {
@@ -30,26 +54,46 @@ import {formatTime} from '../../utils/common.js'
 			this.targetTime = new Date().getTime() + 6430000
 			console.log(this.targetTime)
 		},
+		onShow() {
+		    wx.setNavigationBarTitle({title: '忘记密码'})
+		},
 		methods: {
+			countDown() {
+				if (this.showBtn) {
+					return
+				}
+				this.showBtn = true;
+				// console.log(88888888)
+				this.content = this.totalTime + 's后重新发送' //这里解决60秒不见了的问题
+				let clock = setInterval(() => {
+				this.totalTime--
+				this.content = this.totalTime + 's后重新发送'
+				if (this.totalTime < 0) {     //当倒计时小于0时清除定时器
+					clearInterval(clock)
+					this.content = '发送验证码'
+					this.totalTime = 60
+					this.showBtn = false
+					}
+				},1000)
+			},
 			submitForm() {
-				if (!this.phoneNumber) {
-					this.$toast({
-						content: '请输入手机号',
-						type: 'error'
-					});
-					return
-				}
-				if (!this.password) {
-					this.$toast({
-						content: '请输入密码',
-						type: 'error'
-					});
-					return
-				}
+				this.$openWin('/pages/login/main')
+
+			},
+			handleOk(index) {
+				// console.log(index)
+				this.$redirectTo('/pages/login/main')
+				this.visible = false
 				this.$toast({
-					content: '手机或密码输入错误',
-					type: 'error'
+					content: '登录成功',
+					type: 'success'
 				});
+				
+			},
+			handleCancel(index) {
+				console.log(index)
+				this.$reLaunch('/pages/index/main')
+				this.visible = false
 			},
 			changeNumber(value) {
 				console.log('888888888888',value)
@@ -99,7 +143,7 @@ import {formatTime} from '../../utils/common.js'
 
 .welcome {
     width: 100%;
-	margin: 25% 0;
+	margin: 15% 0;
 	text-align: center;
 	color: #fff;
 	font-size: 20px;
@@ -112,7 +156,7 @@ import {formatTime} from '../../utils/common.js'
 .login-inp {
     margin: 0 30px 15px 30px;
     border: 1px solid #fff;
-    border-radius: 25px;
+    border-radius: 5px;
 }
 
 .login-inp label {
@@ -121,6 +165,23 @@ import {formatTime} from '../../utils/common.js'
     display: inline-block;
 	color: #fff;
 	vertical-align: 6px;
+	line-height: 40px;
+}
+.po {
+	position: relative;
+}
+.login-inp .send {
+	height:40px;
+	width:120px;
+	position: absolute;;
+	right:0;
+	top:0;
+	line-height:40px;
+	font-size:14px;
+	border-radius:4px;
+	background:#fff;
+	color: #333;
+	z-index: 111;
 }
 
 .login-inp input {
@@ -132,6 +193,7 @@ import {formatTime} from '../../utils/common.js'
 	outline: none;
 	vertical-align: -6px;
 	line-height: 40px;
+	margin-left: 10px;
 }
 
 .login-inp span {
@@ -153,5 +215,11 @@ import {formatTime} from '../../utils/common.js'
     color: #fff;
 	padding: 0 5px;
 	display: inline-block;
+}
+.card_txt {
+	margin: 0 10px;
+}
+.card_input {
+	border: 1px solid #ccc;
 }
 </style>

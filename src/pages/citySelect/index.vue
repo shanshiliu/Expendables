@@ -18,7 +18,7 @@
       }
     },
     onShow() {
-      wx.setNavigationBarTitle({title: '选择城市'})
+      wx.setNavigationBarTitle({title: '选择工种'})
     }
   }
 </script>

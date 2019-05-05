@@ -2,16 +2,14 @@
     <div class="login_section">
 			<div class="login">
 				<div class="welcome">
-					welcome
+					特易过
 				</div>
 				<div class="login-form">
-					<div class="login-inp"><label>登录</label><input v-model="phoneNumber" type="digit" placeholder="请输入手机号"></div>
-					<div class="login-inp"><label>密码</label><input v-model="password" type="password" placeholder="请输入密码"></div>
-					<div class="login-inp"><span open-type="getUserInfo" @getuserinfo="onGetUserInfo" @click="submitForm">立即登录</span></div>
+					<button class="login-inp" id="getphone" open-type="getUserInfo" @getuserinfo="bindGetUserInfo" @click="getUserInfo1">获取权限快速登录</button>
 				</div>
 				<div class="login-txt" >
-				<span @click.stop="$openWin('/pages/register/main')">立即注册</span>|
-				<span @click.stop="$openWin('/pages/forgetPassword/main')">忘记密码？</span></div>
+				<span @click.stop="$openWin('/pages/register/main')">手机注册</span>|
+				<span @click.stop="$openWin('/pages/login/main')">手机登录</span></div>
 			</div>
 			<i-toast id="toast" />
     </div>
@@ -35,6 +33,29 @@ import {formatTime} from '../../utils/common.js'
 			wx.setNavigationBarTitle({title: '登录'})
 		},
 		methods: {
+			getUserInfo1(){
+				console.log('click事件首先触发')
+				// 判断小程序的API，回调，参数，组件等是否在当前版本可用。  为false 提醒用户升级微信版本
+				// console.log(wx.canIUse('button.open-type.getUserInfo'))
+				if(wx.canIUse('button.open-type.getUserInfo')){
+				// 用户版本可用
+				}else{
+				console.log('请升级微信版本')
+				}
+			},
+			bindGetUserInfo(e) {
+				// console.log(e.mp.detail.rawData)
+				if (e.mp.detail.rawData){
+				//用户按了允许授权按钮
+				console.log('用户按了允许授权按钮')
+				console.log(e.mp.detail.iv)
+				console.log(e.mp.detail.encryptedData)
+					
+				} else {
+				//用户按了拒绝按钮
+				console.log('用户按了拒绝按钮')
+				}
+			},
 			submitForm() {
 				// if (!this.phoneNumber) {
 				// 	this.$toast({
@@ -155,6 +176,15 @@ import {formatTime} from '../../utils/common.js'
 	outline: none;
 	vertical-align: -6px;
 	line-height: 40px;
+}
+.login-inp button {
+	display: block;
+    width: 100%;
+    text-align: center;
+    line-height: 40px;
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 5px;
 }
 
 .login-inp span {

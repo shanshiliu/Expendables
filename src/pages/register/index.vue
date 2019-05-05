@@ -54,6 +54,9 @@ import {formatTime} from '../../utils/common.js'
 			this.targetTime = new Date().getTime() + 6430000
 			console.log(this.targetTime)
 		},
+		onShow() {
+			wx.setNavigationBarTitle({title: '账号注册'})
+		},
 		methods: {
 			countDown() {
 				if (this.showBtn) {
@@ -166,6 +169,7 @@ import {formatTime} from '../../utils/common.js'
     display: inline-block;
 	color: #fff;
 	vertical-align: 6px;
+	line-height: 40px;
 }
 .po {
 	position: relative;

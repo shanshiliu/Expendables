@@ -1,12 +1,22 @@
 <template>
     <div class="exam">
         <div class="exam_header">
-			<div>模拟考试 <span class="fr">{{currentSubject}}/{{total}}</span></div>
-			<div class="date">考试日期:{{currentDate}}</div>
+			<i-tabs :current="tabActive" @change="handleChange($event)">
+				<i-tab key="tab1" title="答题模式"></i-tab>
+				<i-tab key="tab2" title="背题模式"></i-tab>
+			</i-tabs>
+			<div>我的收藏
+				<!-- <span class="fr">{{currentSubject}}/{{total}}</span> -->
+				<span v-if="collectionIcon==='collection'" class="fr" @click="collectionHandle"><i-icon type="collection" 
+				size="20" color="#f9e409"/></span>
+				<span v-else class="fr" @click="collectionHandle"><i-icon type="collection_fill" 
+				size="20" color="#f9e409"/></span>
+				</div>
+			<!-- <div class="date">考试日期:{{currentDate}}</div> -->
 		</div>
 		<div class="subject">
 			<div class="title">
-				1.发色发森费萨尔肤色暗访色费萨尔飞洒发而亲仁群二群二翁切尔奇是。（）
+				1.挨罚给欧非付费后爱上覅欧莎阿瑟激发二佛阿瑟发而发生巨额佛萨尔of阿尔发色发色发。（）
 			</div>
 			<div class="select_group">
 				<!-- <radio-group class="radio-group" bindchange="radioChange" color="red">
@@ -22,26 +32,15 @@
 			</div>
 		</div>
 		<div>
-			<view class="view-wrap">
-				<text class="type-title">剩余时间：</text>
-				<i-count-down
-						:target="targetTime"
-						:clear-timer="clearTimer"
-                        :format="myFormat"
-				></i-count-down>
-			</view>
 		</div>
 		<div class="box_bottom">
-			<!-- <button type="default" size="mini" :disabled="currentSubject===1"
-			 bindtap="mini"  @click="prevHandle">上一题</button>
-			 <button type="primary" size="mini" :disabled="currentSubject===total"
-			 bindtap="mini" @click="nextHandle">下一题</button> -->
-			 <i-button i-class="btn_question" size="small" @click="prevHandle" :disabled="currentSubject===1">上一题</i-button>
-			 <i-button i-class="btn_question" size="small" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
+			<i-button i-class="btn_question" size="small" @click="prevHandle" :disabled="currentSubject===1">上一题</i-button>
+			<i-button i-class="btn_question" size="small" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
 		</div>
 		<div class="float_menu icon-item" @click="openModal">
-			<dd class="icon ub-box ub-ver iconfont icon-liebiaoshitucaidan"></dd>
+			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
+
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
@@ -54,7 +53,7 @@
 				</div>
 			</view>
 		</i-action-sheet>
-		<!-- <i-modal i-class="menu_modal" :visible="visible" bind:ok="handleClose" 
+		<!-- <i-modal id="menu_modal" :visible="visible" bind:ok="handleClose" 
 		:show-ok="false" :show-cancel="false" bind:cancel="handleClose">
 			<div>
 				<span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
@@ -62,36 +61,39 @@
 					<span>{{index+1}}</span>
 				</span>
 			</div>
-		</i-modal> -->
+		</i-modal>
+
+		<i-toast id="toast" /> -->
     </div>
 </template>
 <script>
 import {formatTime} from '../../utils/common.js'
+const { $Toast } = require('../../../static/iview/base/index');
+
 	export default {
 	  	data () {
 			return {
 				currentDate: '',
+				tabActive: 'tab1',
 				currentSubject: 1,
 				total: 100,
 				isSelect: false,
 				visible: false,
 				totalArr: [],
+				collectionIcon: 'collection',
 				items: [
 					{name: 'USA', value: 'A.美国', status: 'normal'},
 					{name: 'CHN', value: 'B.中国', status: 'normal', 'answer': 'true'},
 					{name: 'BRA', value: 'c.巴西', status: 'normal'},
 					{name: 'JPN', value: 'd.日本', status: 'normal'},
 				],
-				actions: [
-					{
-						name: '删除',
-						color: '#ed3f14'
-					}
-				],
 				targetTime: 0,
 				clearTimer: false,
 				myFormat: ['时', '分', '秒'],
 			}
+		},
+		onShow() {
+			wx.setNavigationBarTitle({title: '我的收藏'})
 		},
 		mounted() {
 			this.currentDate = formatTime(new Date())
@@ -100,6 +102,10 @@ import {formatTime} from '../../utils/common.js'
 			console.log(this.targetTime)
 		},
 		methods: {
+			handleChange(e) {
+				// console.log(detail)
+				this.tabActive = e.mp.detail.key
+			},
 			prevHandle() {
 				if(this.currentSubject === 1) {
 					return
@@ -138,6 +144,20 @@ import {formatTime} from '../../utils/common.js'
 				})
 				this.isSelect = true
 			},
+			collectionHandle() {
+				if (this.collectionIcon === 'collection') {
+					this.collectionIcon = 'collection_fill'
+					$Toast({
+						content: '已收藏此题'
+					});
+				} else {
+					this.collectionIcon = 'collection'
+					$Toast({
+						content: '已取消收藏此题'
+					});
+				}
+				
+			}
 		}
 	}
 </script>
@@ -149,6 +169,7 @@ import {formatTime} from '../../utils/common.js'
 	.exam_header {
 		font-size: 14px;
 		color:#333;
+		margin-top: 20px;
 	}
 	.date {
 		font-size: 12px;
@@ -170,7 +191,11 @@ import {formatTime} from '../../utils/common.js'
 		width: 100%;
 		line-height: 40px;
 	}
-	
+	.box_bottom button {
+		width: 30%;
+		margin: 10%;
+		display: inline-block;
+	}
 	.float_menu {
 		width: 30px;
 		height: 30px;
@@ -178,6 +203,11 @@ import {formatTime} from '../../utils/common.js'
 		right: 5px;
 		border: 1px solid #2d8cf0;
 		bottom: 20px;
+	}
+	#menu_modal  .i-modal-main {
+		width: 100%;
+		bottom: 0px;
+		position: fixed;
 	}
 	.select_box span {
 		width: 25px;
@@ -216,13 +246,16 @@ import {formatTime} from '../../utils/common.js'
 		background: #e65757 !important;
 	}
 	.sub_correct {
-		background: #2d8cf0 !important;
+		background: #35db9c !important;
 	}
 	.type-title {
 		display: inline-block;
 	}
-	.icon{width: 30px;height: 30px;border-radius: 50%;color: #2d8cf0;font-size: 24px}
-    .action_sheet .i-as-show {
-		height: 50%;
+    .icon{
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
+		color: #2d8cf0;
+		font-size: 24px
 	}
 </style>
