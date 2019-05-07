@@ -49,7 +49,7 @@ export default {
     window: {
       backgroundTextStyle: 'light',
       navigationBarBackgroundColor: '#2d8cf0',
-      navigationBarTitleText: '考易过',
+      navigationBarTitleText: '特易过',
       navigationBarTextStyle: 'white',
       // enablePullDownRefresh: true
     },

@@ -40,7 +40,6 @@
 			<div class="float_menu icon-item" @click="openModal">
 				<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 			</div>
-
 			<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 			@cancel="handleClose" i-class="action_sheets">
 				<view slot="header" style="margin: 16px">
@@ -205,7 +204,6 @@ const { $Toast } = require('../../../static/iview/base/index');
 						content: '已取消收藏此题'
 					});
 				}
-				
 			}
 		}
 	}

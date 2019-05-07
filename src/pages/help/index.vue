@@ -6,7 +6,7 @@
 		<div class="textarea">
 			<textarea class="detailText"
 			    autofocus
-				placeholder="请输入您所遇到的问题或对我们的建议，我们会即使为您解答或回复。"
+				placeholder="请输入您所遇到的问题或对我们的建议，我们会及时为您解答或回复。"
 				v-model="value">
 			</textarea>
 			<!-- <input :type="textarea" v-model="value"  placeholder=""> -->
@@ -23,28 +23,21 @@
 				value: '',
 			}
 		},
-		onLoad() {
-		},
 		onShow() {
 			wx.setNavigationBarTitle({title: '帮助反馈'})
+		},
+		mounted() {
+			this.value = ''
 		},
 		methods: {
 			submitHandle() {
 				const that = this
-				wx.request({
-					url: 'http://192.168.0.101:1234/expendables/api/msg/feedMsg',
-					method: 'POST',
-					data: {
+				this.$ajax({url: '/msg/feedMsg', method: 'POST', data: {
 						message: that.value,
-					},
-					header: {
-						"content-type": "application/json", 
-						'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
-					},
-					success(res) {
-						console.log('成功')
-					}
-			    })
+					}}, function(res) {
+					console.log('成功')
+					that.$backBeaforWin()
+				})
 			}
 		}
 	}
