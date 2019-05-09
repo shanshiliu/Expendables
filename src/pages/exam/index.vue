@@ -2,7 +2,9 @@
     <div class="exam">
 		<scroll-view scroll-y scroll-top="0" class="scroll_100">
         <div class="exam_header">
-			<div>模拟考试 <span class="fr">{{currentSubject}}/{{total}}</span></div>
+			<div>模拟考试 <span class="fr">{{currentSubject}}/{{total}}</span>
+			<span class="jiao"><i-button i-class="jiao" size="small" shape="circle" type="primary" @click="submitQ">交卷</i-button></span>
+			</div>
 			<div class="date">考试时间:{{currentDate}}</div>
 		</div>
 		<div class="subject">
@@ -13,46 +15,34 @@
 			</div>
 			<div class="select_group">
 				<div
-				 :key="index" v-for="(item,index) in currentQuestion.answerList" @click="selectAnswer(index, questionStyle,item)">
+				 :key="index" v-for="(item,index) in currentQuestion.answerMapList" @click="selectAnswer(index,item)">
 				 <span class="inline_icon"><i :class="{'iconfont':true,'icon-xuanze':true,
 					'icon-unif060':item.status==='error','icon-ShapeCopy':item.status==='correct','icon-xuanzhong':item.status==='select'}"
-					style="color:#2d8cf0;font-size:20px"></i></span>{{item}}
+					style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}.{{item.value}}
 				</div>
 			</div>
 		</div>
-		<div>
-			<i-button i-class="btn_question" size="small" shape="circle" type="primary" v-if="questionStyle==='多选'"  @click="submitAnswer">提交</i-button>
+		<div v-if="questionStyle==='多选'&&!currentQuestion.isSelect">
+			<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitAnswer">提交</i-button>
 		</div>
-		<div v-if="showAnswer">
-			<span>{{descText}}</span>
-			正确答案： a b c
-		</div>
-		<div>
-			<view class="view-wrap">
-				<text class="type-title">剩余时间：</text>
-				<i-count-down
-						:target="targetTime"
-						:clear-timer="clearTimer"
-                        :format="myFormat"
-				></i-count-down>
-			</view>
+		<div v-if="currentQuestion.isSelect" :class="{'is_error':currentQuestion.isSelect===2,'is_right':currentQuestion.isSelect===1}">
+			<span v-if="currentQuestion.isSelect===1">您最对了！</span>
+			<span v-if="currentQuestion.isSelect===2">您做错了</span>
+			正确答案：<span v-for="(item,index) in currentQuestion.rightAnswerList" :key="String(index)">{{item}}</span>
 		</div>
 		<div class="box_bottom">
-			 <i-button i-class="btn_question" size="small" @click="prevHandle" :disabled="currentSubject===1">上一题</i-button>
-			 <i-button i-class="btn_question" size="small" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
+			 <i-button i-class="btn_question" size="small" @click="jumpHandle('prev')" :disabled="currentSubject===1">上一题</i-button>
+			 <i-button i-class="btn_question" size="small" type="primary" @click="jumpHandle('next')" :disabled="currentSubject===total">下一题</i-button>
 		</div>
 		<div class="float_menu icon-item" @click="openModal">
 			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
-
-		
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
-				<!-- <view style="color: #444;font-size: 16px">确定吗？</view> -->
 				<div style="background: red">
 				    <span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
-					@click="selectHandle(index+1)">
+					@click="selectHandle(index)">
 						<span>{{index+1}}</span>
 					</span>
 				</div>
@@ -62,176 +52,175 @@
     </div>
 </template>
 <script>
-import {formatTime} from '../../utils/common.js'
+import { formatTime } from '../../utils/common.js'
 	export default {
 	  	data () {
 			return {
-				currentDate: '',
 				currentSubject: 1,
-				total: 100,
-				isSelect: false,
+				total: 1,
+				currentDate: '',
 				visible: false,
 				totalArr: [],
-				items: [
-					{name: 'USA', value: 'A.美国', status: 'normal'},
-					{name: 'CHN', value: 'B.中国', status: 'normal', 'answer': 'true'},
-					{name: 'BRA', value: 'c.巴西', status: 'normal'},
-					{name: 'JPN', value: 'd.日本', status: 'normal'},
-				],
-				actions: [
-					{
-						name: '删除',
-						color: '#ed3f14'
-					}
-				],
-				targetTime: 0,
-				clearTimer: false,
-				myFormat: ['时', '分', '秒'],
-
+				tabActive: 'tab1',
+				actions: [],
+				collectionIcon: 'collection',
 				totalQuestion: [],
 				currentQuestion: {},
 				showAnswer: false,
-				descText: '',
 				questionStyle: '单选',
 				answerArr: [],
 				rightAnswer: [],
+				submitAnswer: [],
+				score: 0
 			}
 		},
 		onLoad() {
 			const that = this
+			//  '/errorQuestion/getErrorQuestion'
 			this.$ajax({url: '/question/exam', method: 'POST'}, function(res) {
 				that.totalQuestion = res.result
 				that.currentQuestion = that.totalQuestion[0]
 				that.total = that.totalQuestion.length
 				that.totalArr = new Array(that.total)
-				that.targetTime = new Date().getTime() + 6430000
 				that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 			})
-		// 	wx.request({
-		// 		url: 'http://192.168.0.101:1234/expendables/api/question/exam',
-		// 		method: 'POST',
-		// 		header: {
-        //             "content-type": "application/json", 
-        //             'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
-        //         },
-		// 		success(res) {
-		// 			that.totalQuestion = res.data.result
-		// 			that.currentQuestion = that.totalQuestion[0]
-		// 			that.total = that.totalQuestion.length
-		// 			that.totalArr = new Array(that.total)
-		// 			that.targetTime = new Date().getTime() + 6430000
-		// 	    }
-        //    })
 		},
 		mounted() {
 			this.currentDate = formatTime(new Date())
-			
-			// console.log(this.targetTime)
 		},
 		onShow() {
 		    wx.setNavigationBarTitle({title: '模拟考试'})
 		},
 		methods: {
-			prevHandle() {
-				if(this.currentSubject === 1) {
-					return
+			submitQ() {
+				const data = {
+					score: this.score,
+					examEndTime: formatTime(new Date()),
+					questions: this.submitAnswer
 				}
-				this.currentSubject --
-				this.currentQuestion = this.totalQuestion[this.currentSubject]
-				this.isSelect = false
-				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				this.$ajax({url: '/question/commitExam', method: 'POST' , data: data}, function(res) {
+				})
 			},
-			nextHandle() {
-				if(this.currentSubject === this.total) {
-					return
+			handleChange(e) {
+				this.tabActive = e.mp.detail.key
+			},
+			jumpHandle(value) {
+				this.answerArr = []
+				if(value === 'prev') {
+					if(this.currentSubject===1){
+						return
+					}
+					this.currentSubject --
+				} else if(value === 'next') {
+					if(this.currentSubject===this.total){
+						return
+					}
+					this.currentSubject ++
 				}
-				this.currentSubject ++
-				this.currentQuestion = this.totalQuestion[this.currentSubject]
+				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
 				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
-				this.isSelect = false
 			},
 			openModal() {
-				console.log(this.visible)
 				this.visible = true
 			},
 			handleClose() {
 				this.visible = false
 			},
-			selectHandle(value) {
-				this.currentSubject = value
-				this.currentQuestion = this.totalQuestion[this.currentSubject]
+			selectHandle(index) {
+				this.currentSubject = index+1
+				this.currentQuestion = this.totalQuestion[index]
 				this.visible = false
 			},
-			selectAnswer(index, params, item) {
-				if (this.isSelect) {
+			selectAnswer(index, item) {
+				if (this.currentQuestion.isSelect) {
 					return false
 				}
 				//多选答案
-				if (params === '多选' && !this.currentQuestion[index].status) {
-					this.answerArr.push(this.currentQuestion[index].value)
-					this.currentQuestion[index].status = 'select'
-					return false
-				} else {
-					//单选答案
-					this.currentQuestion.answerList.map((item,index) => {
-						if (item.value === this.rightAnswer.toString()) {
-							item.status = 'correct'
-						} else if(index ===value && !item.answer) {
-							this.items[index].status = 'error'
-						}
-					})
-
-					if (this.currentQuestion.rightAnswerList.toString() === item) {
-						console.log()
-						this.currentQuestion[index].status = 'correct'
+				if(this.questionStyle === '多选' && !this.currentQuestion.isSelect) {
+					if(item.status===undefined || item.status === '') {
+						item.status = 'select'
+						this.answerArr.push(item.key)
 					} else {
-						this.currentQuestion[index].status = 'error'
+						const index = this.answerArr.indexOf(item.key)
+						if(index > -1) {
+							this.answerArr.splice(index,1)
+						}
+						item.status = ''
+					}
+					this.$forceUpdate()
+				} else {
+					//单选答案 提交
+					this.answerArr.push(item.key)
+					const rightTemp = this.currentQuestion.rightAnswerList.toString()
+					//正确
+					if(this.answerArr.toString() === rightTemp) {
+						item.status = 'correct'
+						this.currentQuestion.isSelect = 1
+						this.submitAnswer.push({
+							code: this.currentQuestion.code,
+							answer: rightTemp,
+						    isRight: 1,
+						})
+					} else {
+						//错误
+						console.log(rightTemp)
+						this.currentQuestion.answerMapList.map(lis => {
+							if(lis.key === item.key) {
+								lis.status = 'error'
+							}else if (lis.key === rightTemp) {
+								lis.status = 'correct'
+							}
+						})
+						this.submitAnswer.push({
+							code: this.currentQuestion.code,
+							answer: rightTemp,
+						    isRight: 2,
+						})
+						this.currentQuestion.isSelect = 2
 					}
 				}
-				this.isSelect = true
+				console.log(this.answerArr)
 			},
-			// selectAnswer(value) {
-			// 	wx.request({
-			// 		url: 'http://192.168.0.101:1234/expendables/api/question/commitExam',
-			// 		method: 'POST',
-			// 		data: [
-			// 			{
-			// 			"code":"11ZJ8478734",
-			// 			"answer":"A,B",
-			// 			"isRight":1
-			// 			},
-			// 			{
-			// 			"code":"53ZJ8492731",
-			// 			"answer":"A,B",
-			// 			"isRight":0
-			// 			}
-			// 		],
-			// 		header: {
-			// 			"content-type": "application/json", 
-			// 			'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
-			// 		},
-			// 		success(res) {
-			// 			console.log(res.data.result)
-			// 			that.cityList = res.data.result
-			// 		}
-			// 	})
-			// 	if (this.isSelect) {
-			// 		return false
-			// 	}
-			// 	this.items.map((item,index) => {
-			// 		if (item.answer) {
-			// 			item.status = 'correct'
-			// 		} else if(index ===value && !item.answer) {
-			// 			this.items[index].status = 'error'
-			// 		}
-			// 	})
-			// 	this.isSelect = true
-			// },
+			submitAnswer() {
+				//多选提交答案
+				console.log(this.answerArr)
+				if (this.answerArr.sort().toString() === this.currentQuestion.rightAnswerList.toString()) {
+					this.currentQuestion.isSelect = 1
+					this.submitAnswer.push({
+						code: this.currentQuestion.code,
+						answer: this.answerArr.join(','),
+						isRight: 2,
+					})
+				} else {
+					this.currentQuestion.isSelect = 2
+					this.submitAnswer.push({
+						code: this.currentQuestion.code,
+						answer: this.answerArr.join(','),
+						isRight: 2,
+					})
+				}
+			},
+			collectionHandle() {
+				if (this.collectionIcon === 'collection') {
+					this.collectionIcon = 'collection_fill'
+					wx.showToast({
+						title: '已收藏此题',
+						icon: 'success',
+						duration: 2000
+					})
+				} else {
+					this.collectionIcon = 'collection'
+					wx.showToast({
+						title: '已取消收藏此题',
+						icon: 'none',
+						duration: 2000
+					})
+				}
+			}
 		}
 	}
 </script>
 <style scoped>
-
 	.exam {
 		padding: 0 20px;
 		font-size: 14px;
@@ -323,6 +312,14 @@ import {formatTime} from '../../utils/common.js'
 	.sub_error {
 		background: #e65757 !important;
 	}
+	.is_error {
+		color:#e65757;
+		padding-left: 20px;
+	}
+	.is_right {
+		color: #2d8cf0;
+		padding-left: 20px;
+	}
 	.sub_correct {
 		background: #35db9c !important;
 	}
@@ -353,5 +350,8 @@ import {formatTime} from '../../utils/common.js'
 		position: absolute;
 		left: -2px;
 		top: -1px;
+	}
+	.jiao {
+		width: 60px;
 	}
 </style>

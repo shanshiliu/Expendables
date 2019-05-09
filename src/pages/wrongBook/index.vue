@@ -21,33 +21,31 @@
 			</div>
 			<div class="select_group">
 				<div
-				 :key="index" v-for="(item,index) in currentQuestion.answerList" @click="selectAnswer(index, questionStyle,item)">
+				 :key="index" v-for="(item,index) in currentQuestion.answerMapList" @click="selectAnswer(index,item)">
 				 <span class="inline_icon"><i :class="{'iconfont':true,'icon-xuanze':true,
 					'icon-unif060':item.status==='error','icon-ShapeCopy':item.status==='correct','icon-xuanzhong':item.status==='select'}"
-					style="color:#2d8cf0;font-size:20px"></i></span>{{item}}
+					style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}.{{item.value}}
 				</div>
 			</div>
 		</div>
-		<div>
-			<i-button i-class="btn_question" size="small" shape="circle" type="primary" v-if="questionStyle==='多选'"  @click="submitAnswer">提交</i-button>
+		<div v-if="questionStyle==='多选'&&!currentQuestion.isSelect">
+			<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitAnswer">提交</i-button>
 		</div>
-		<div v-if="showAnswer">
-			<span>{{descText}}</span>
-			正确答案： a b c
+		<div v-if="currentQuestion.isSelect" :class="{'is_error':currentQuestion.isSelect===2,'is_right':currentQuestion.isSelect===1}">
+			<span v-if="currentQuestion.isSelect===1">您最对了！</span>
+			<span v-if="currentQuestion.isSelect===2">您做错了</span>
+			正确答案：<span v-for="(item,index) in currentQuestion.rightAnswerList" :key="String(index)">{{item}}</span>
 		</div>
 		<div class="box_bottom">
-			 <i-button i-class="btn_question" size="small" @click="prevHandle" :disabled="currentSubject===1">上一题</i-button>
-			 <i-button i-class="btn_question" size="small" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
+			 <i-button i-class="btn_question" size="small" @click="jumpHandle('prev')" :disabled="currentSubject===1">上一题</i-button>
+			 <i-button i-class="btn_question" size="small" type="primary" @click="jumpHandle('next')" :disabled="currentSubject===total">下一题</i-button>
 		</div>
 		<div class="float_menu icon-item" @click="openModal">
 			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
-
-		
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
-				<!-- <view style="color: #444;font-size: 16px">确定吗？</view> -->
 				<div style="background: red">
 				    <span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
 					@click="selectHandle(index)">
@@ -66,7 +64,7 @@ import { formatTime } from '../../utils/common.js'
 			return {
 				currentSubject: 1,
 				total: 100,
-				isSelect: false,
+				// currentQuestion.isSelect: 0,
 				visible: false,
 				totalArr: [],
 				tabActive: 'tab1',
@@ -75,7 +73,6 @@ import { formatTime } from '../../utils/common.js'
 				totalQuestion: [],
 				currentQuestion: {},
 				showAnswer: false,
-				descText: '',
 				questionStyle: '单选',
 				answerArr: [],
 				rightAnswer: [],
@@ -92,8 +89,6 @@ import { formatTime } from '../../utils/common.js'
 				that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 			})
 		},
-		mounted() {
-		},
 		onShow() {
 		    wx.setNavigationBarTitle({title: '错题集'})
 		},
@@ -101,23 +96,21 @@ import { formatTime } from '../../utils/common.js'
 			handleChange(e) {
 				this.tabActive = e.mp.detail.key
 			},
-			prevHandle() {
-				if(this.currentSubject === 1) {
-					return
+			jumpHandle(value) {
+				this.answerArr = []
+				if(value === 'prev') {
+					if(this.currentSubject===1){
+						return
+					}
+					this.currentSubject --
+				} else if(value === 'next') {
+					if(this.currentSubject===this.total){
+						return
+					}
+					this.currentSubject ++
 				}
-				this.currentSubject --
-				this.currentQuestion = this.totalQuestion[this.currentSubject]
-				this.isSelect = false
+				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
 				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
-			},
-			nextHandle() {
-				if(this.currentSubject === this.total) {
-					return
-				}
-				this.currentSubject ++
-				this.currentQuestion = this.totalQuestion[this.currentSubject]
-				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
-				this.isSelect = false
 			},
 			openModal() {
 				this.visible = true
@@ -130,52 +123,73 @@ import { formatTime } from '../../utils/common.js'
 				this.currentQuestion = this.totalQuestion[index]
 				this.visible = false
 			},
-			selectAnswer(index, params, item) {
-				if (this.isSelect) {
+			selectAnswer(index, item) {
+				if (this.currentQuestion.isSelect) {
 					return false
 				}
 				//多选答案
-				if (params === '多选' && !this.currentQuestion[index].status) {
-					this.answerArr.push(this.currentQuestion[index].value)
-					this.currentQuestion[index].status = 'select'
-					return false
+				if(this.questionStyle === '多选' && !this.currentQuestion.isSelect) {
+					if(item.status===undefined || item.status === '') {
+						item.status = 'select'
+						this.answerArr.push(item.key)
+					} else {
+						const index = this.answerArr.indexOf(item.key)
+						if(index > -1) {
+							this.answerArr.splice(index,1)
+						}
+						item.status = ''
+					}
+					this.$forceUpdate()
 				} else {
 					//单选答案
-					this.currentQuestion.answerList.map((item,index) => {
-						if (item.value === this.rightAnswer.toString()) {
-							item.status = 'correct'
-						} else if(index ===value && !item.answer) {
-							this.items[index].status = 'error'
-						}
-					})
-
-					if (this.currentQuestion.rightAnswerList.toString() === item) {
-						console.log()
-						this.currentQuestion[index].status = 'correct'
+					this.answerArr.push(item.key)
+					const rightTemp = this.currentQuestion.rightAnswerList.toString()
+					if(this.answerArr.toString() === rightTemp) {
+						item.status = 'correct'
+						this.currentQuestion.isSelect = 1
 					} else {
-						this.currentQuestion[index].status = 'error'
+						console.log(rightTemp)
+						this.currentQuestion.answerMapList.map(lis => {
+							if(lis.key === item.key) {
+								lis.status = 'error'
+							}else if (lis.key === rightTemp) {
+								lis.status = 'correct'
+							}
+						})
+						this.currentQuestion.isSelect = 2
 					}
 				}
-				this.isSelect = true
+				console.log(this.answerArr)
+			},
+			submitAnswer() {
+				console.log(this.answerArr)
+				if (this.answerArr.sort().toString() === this.currentQuestion.rightAnswerList.toString()) {
+					this.currentQuestion.isSelect = 1
+				} else {
+					this.currentQuestion.isSelect = 2
+				}
 			},
 			collectionHandle() {
 				if (this.collectionIcon === 'collection') {
 					this.collectionIcon = 'collection_fill'
-					this.$toast({
-						content: '已收藏此题'
-					});
+					wx.showToast({
+						title: '已收藏此题',
+						icon: 'success',
+						duration: 2000
+					})
 				} else {
 					this.collectionIcon = 'collection'
-					this.$toast({
-						content: '已取消收藏此题'
-					});
+					wx.showToast({
+						title: '已取消收藏此题',
+						icon: 'none',
+						duration: 2000
+					})
 				}
 			}
 		}
 	}
 </script>
 <style scoped>
-
 	.exam {
 		padding: 0 20px;
 		font-size: 14px;
@@ -266,6 +280,14 @@ import { formatTime } from '../../utils/common.js'
 	}
 	.sub_error {
 		background: #e65757 !important;
+	}
+	.is_error {
+		color:#e65757;
+		padding-left: 20px;
+	}
+	.is_right {
+		color: #2d8cf0;
+		padding-left: 20px;
 	}
 	.sub_correct {
 		background: #35db9c !important;
