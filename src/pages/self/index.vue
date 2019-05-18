@@ -26,7 +26,7 @@
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
         </p>
       </dd>
-      <dd @click.stop="$openWin('/pages/citySelect/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+      <dd @click.stop="$openWin('/pages/citySelect/main?id=1')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-renyuanxuanzetubiao" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">我的工种 (切换)</span>
@@ -35,10 +35,10 @@
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
         </p>
       </dd>
-      <dd @click.stop="$openWin('/pages/citySelect/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+      <dd @click.stop="$openWin('/pages/citySelect/main?id=2')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-xuanzetubiao" style="color:#2d8cf0;font-size:20px"></i>
-        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">选择工种</span>
+        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">选择 (添加) 工种</span>
         </p>
         <p class="ub-box ub-ver">
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
@@ -52,7 +52,7 @@
       </dd>
     </dl>
 
-    <i-modal title="注册成功" :visible="visible"  @ok="handleOk" @cancel="handleCancel">
+    <i-modal title="登录成功" :visible="visible"  @ok="handleOk" @cancel="handleCancel">
       <div class="card_txt">
         <div>如有卡密号，请输入卡密号登录获得更多会员权限</div>
           <input class="card_input" v-model="cardNumber" type="text" autofocus>
@@ -90,6 +90,8 @@ export default {
       const info = e.mp.detail.userInfo
       info['encryptedData'] = e.mp.detail.encryptedData
       info['iv'] = e.mp.detail.iv
+      info['signature'] = e.mp.detail.signature
+      info['rawData'] = e.mp.detail.rawData
       this.$store.commit('updateIsLogin', true)
       this.$store.commit('updateUser', info)
       wx.login({

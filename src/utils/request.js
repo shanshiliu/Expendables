@@ -1,7 +1,7 @@
 // 局域网
-// const host = 'http://192.168.0.101:1234/expendables/api'
+const host = 'http://192.168.0.101:1234/expendables/api'
 // 远程
-const host = 'http://xinsiji.free.idcfengye.com/expendables/api'
+// const host = 'http://xinsiji.free.idcfengye.com/expendables/api'
 
 wx.setStorage({
     key: 'toekn',

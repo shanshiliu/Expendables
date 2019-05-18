@@ -43,3 +43,12 @@
  .scroll_100 {
     height:100%;     
 }
+
+.jiao {
+    width:80px !important;
+    height:30px !important;
+    line-height:30px !important;
+    display:block !important;
+    float:right;
+    margin: 5px !important;
+}

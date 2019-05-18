@@ -2,10 +2,10 @@
   <div class="container ub-box ub-col">
     <scroll-view scroll-y scroll-top="0" class="scroll_box">
       <!--轮播图-->
-      <div class="ub-box ub-ver z-bg-color-fff">
+      <div class="ub-box ub-ver">
         <swiper class="swiper" indicator-dots="false" autoplay="false" interval="5000" duration="500">
           <block v-for="(item, idx) in imgUrls" :key="String(idx)">
-            <swiper-item>
+            <swiper-item class="shadow">
               <image :src="item" class="z-width-100-percent" mode="widthFix"/>
             </swiper-item>
           </block>
@@ -69,7 +69,10 @@
   }
   .swiper{
     height: 120px;
-    width: calc(100%)
+    width: calc(100%);
+    border-radius:25px;
+    overflow:hidden;
+    padding:5px;
   }
   .icon-item {
     width:calc(50% - 20px);
@@ -87,8 +90,12 @@
     font-size: 30px
   }
   .scroll_box {
-    background: -webkit-gradient(linear,center top,center bottom,from( #8eaaff), to(#80cc84));
+    /* background: -webkit-gradient(linear,center top,center bottom,from( #8eaaff), to(#80cc84)); */
     height: calc(100vh - 1px);     
+    /* background-image: linear-gradient(to top, #9890e3 0%, #b1f4cf 100%); */
+    /* background-image: linear-gradient(to top, #2d8cf0 0%, #48c6ef 100%); */
+    /* background-image: linear-gradient(to top, #a3bded 0%, #6991c7 100%); */
+    background-image: linear-gradient(to top, #4481eb 0%, #04befe 100%);
   }
   .vip_icon {
     position: relative;
@@ -106,5 +113,8 @@
     left: -20px;
     transform: rotate(-45deg);
     position: absolute;
+  }
+  .shadow {
+    box-shadow:2px 2px 15px #333333;
   }
 </style>

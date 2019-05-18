@@ -1,10 +1,9 @@
 <template>
     <div class="exam">
 		<scroll-view scroll-y scroll-top="0" class="scroll_100">
-        <div class="exam_header">
-			<div>模拟考试 <span class="fr">{{currentSubject}}/{{total}}</span>
-			<span class="jiao"><i-button i-class="jiao" size="small" shape="circle" type="primary" @click="submitQ">交卷</i-button></span>
-			</div>
+        <div class="exam_header clearfix">
+			<span>模拟考试&nbsp;&nbsp;&nbsp;&nbsp;{{currentSubject}}/{{total}}</span>
+			<i-button id="jiao" i-class="jiao" size="small" shape="circle" type="primary" @click="submitQ">交卷</i-button>
 			<div class="date">考试时间:{{currentDate}}</div>
 		</div>
 		<div class="subject">
@@ -23,13 +22,13 @@
 			</div>
 		</div>
 		<div v-if="questionStyle==='多选'&&!currentQuestion.isSelect">
-			<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitAnswer">提交</i-button>
+			<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitHandle">提交</i-button>
 		</div>
-		<div v-if="currentQuestion.isSelect" :class="{'is_error':currentQuestion.isSelect===2,'is_right':currentQuestion.isSelect===1}">
+		<!-- <div v-if="currentQuestion.isSelect" :class="{'is_error':currentQuestion.isSelect===2,'is_right':currentQuestion.isSelect===1}">
 			<span v-if="currentQuestion.isSelect===1">您最对了！</span>
 			<span v-if="currentQuestion.isSelect===2">您做错了</span>
 			正确答案：<span v-for="(item,index) in currentQuestion.rightAnswerList" :key="String(index)">{{item}}</span>
-		</div>
+		</div> -->
 		<div class="box_bottom">
 			 <i-button i-class="btn_question" size="small" @click="jumpHandle('prev')" :disabled="currentSubject===1">上一题</i-button>
 			 <i-button i-class="btn_question" size="small" type="primary" @click="jumpHandle('next')" :disabled="currentSubject===total">下一题</i-button>
@@ -37,17 +36,33 @@
 		<div class="float_menu icon-item" @click="openModal">
 			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
+
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
 				<div style="background: red">
-				    <span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
+				    <span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject, 'blue': item==='blue'}" :key="index" v-for="(item,index) in totalArr" 
 					@click="selectHandle(index)">
 						<span>{{index+1}}</span>
 					</span>
 				</div>
 			</view>
 		</i-action-sheet>
+
+		<i-modal title="交卷" :visible="visibleB" @ok="handleOk" @cancel="handleCancel">
+			<div class="card_txt">
+				<div v-if="submitAnswer.length===total">是否确认交卷</div>
+				<div v-else>题未做完是否交卷，是否确认交卷</div>
+			</div>
+		</i-modal>
+
+		<i-modal title="成绩" :visible="visibleC" @ok="handleScore($event)" @cancel="handleBack">
+			<div class="scroe_txt">
+				<div>恭喜您考试顺利，提交成功</div>
+				<div>本次考试得分：<span>{{score}}</span>分</div>
+				<div>是否前往考试记录查看</div>
+			</div>
+		</i-modal>
 		</scroll-view>
     </div>
 </template>
@@ -60,6 +75,8 @@ import { formatTime } from '../../utils/common.js'
 				total: 1,
 				currentDate: '',
 				visible: false,
+				visibleB: false,
+				visibleC: false,
 				totalArr: [],
 				tabActive: 'tab1',
 				actions: [],
@@ -71,17 +88,27 @@ import { formatTime } from '../../utils/common.js'
 				answerArr: [],
 				rightAnswer: [],
 				submitAnswer: [],
-				score: 0
+				score: 0,
+				actions2: [
+					{
+						name: '返回'
+					},
+					{
+						name: '前往考试记录查看',
+						color: '#2d8cf0'
+					},
+				],
 			}
 		},
 		onLoad() {
 			const that = this
-			//  '/errorQuestion/getErrorQuestion'
 			this.$ajax({url: '/question/exam', method: 'POST'}, function(res) {
 				that.totalQuestion = res.result
+				// that.totalQuestion = [{"code":"19ZJ8779271","question":"桥式起重机运行轨道两条钢轨中心线之间的距离称为起重机轨距。","styleCode":"S00000000000000000003","score":0,"isDoIt":0,"rightAnswerList":["A"],"answerList":[],"answerMapList":[{"value":"正确","key":"A"},{"value":"错误","key":"B"}],"imageList":[]},{"code":"50ZJ8458559","question":"如图所示,该图标表示什么？","styleCode":"S00000000000000000003","score":0,"isDoIt":0,"rightAnswerList":["C"],"answerList":[],"answerMapList":[{"value":"散装物捆扎不牢不吊","key":"A"},{"value":"锋利边缘无保护不吊","key":"B"},{"value":"歪拉斜吊不吊","key":"C"},{"value":"物体上有人不吊","key":"D"}],"imageList":[]}]
 				that.currentQuestion = that.totalQuestion[0]
 				that.total = that.totalQuestion.length
-				that.totalArr = new Array(that.total)
+				that.totalArr = new Array(that.total).fill('1')
+				console.log(that.totalArr)
 				that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 			})
 		},
@@ -93,18 +120,39 @@ import { formatTime } from '../../utils/common.js'
 		},
 		methods: {
 			submitQ() {
+				this.visibleB = true
+			},
+			handleOk() {
+				this.saveAnswer()
+				const that = this
 				const data = {
 					score: this.score,
 					examEndTime: formatTime(new Date()),
 					questions: this.submitAnswer
 				}
 				this.$ajax({url: '/question/commitExam', method: 'POST' , data: data}, function(res) {
+					if(res.status === 'success') {
+						that.visibleB = false
+						that.visibleC = false
+					}
 				})
+			},
+			handleCancel() {
+				this.visibleB = false
+			},
+			handleScore(e) {
+				console.log(e)
+				this.visibleC = false
+				that.$redirectTo('/pages/record/main')
+			},
+			handleBack() {
+				this.$backBeaforWin()
 			},
 			handleChange(e) {
 				this.tabActive = e.mp.detail.key
 			},
 			jumpHandle(value) {
+				this.saveAnswer()
 				this.answerArr = []
 				if(value === 'prev') {
 					if(this.currentSubject===1){
@@ -119,17 +167,39 @@ import { formatTime } from '../../utils/common.js'
 				}
 				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
 				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				if(this.submitAnswer.length) {
+					// 读取记录的的答案
+					this.submitAnswer.map(item => {
+						if(item.code === this.currentQuestion.code) {
+							this.answerArr = item.answer.split(',')
+						}
+					})
+				}
+				console.log(this.answerArr)
 			},
 			openModal() {
 				this.visible = true
+			},
+			getpush(params) {
+				this.submitAnswer.push(params)
 			},
 			handleClose() {
 				this.visible = false
 			},
 			selectHandle(index) {
+				//保存当前题答案
+				this.saveAnswer()
 				this.currentSubject = index+1
 				this.currentQuestion = this.totalQuestion[index]
 				this.visible = false
+				if(this.submitAnswer.length) {
+					// 读取记录的的答案
+					this.submitAnswer.map(item => {
+						if(item.code === this.currentQuestion.code) {
+							this.answerArr = item.answer.split(',')
+						}
+					})
+				}
 			},
 			selectAnswer(index, item) {
 				if (this.currentQuestion.isSelect) {
@@ -149,71 +219,89 @@ import { formatTime } from '../../utils/common.js'
 					}
 					this.$forceUpdate()
 				} else {
-					//单选答案 提交
+					//单选答案
+					this.answerArr = []
 					this.answerArr.push(item.key)
-					const rightTemp = this.currentQuestion.rightAnswerList.toString()
-					//正确
-					if(this.answerArr.toString() === rightTemp) {
-						item.status = 'correct'
-						this.currentQuestion.isSelect = 1
-						this.submitAnswer.push({
-							code: this.currentQuestion.code,
-							answer: rightTemp,
-						    isRight: 1,
-						})
-					} else {
-						//错误
-						console.log(rightTemp)
-						this.currentQuestion.answerMapList.map(lis => {
-							if(lis.key === item.key) {
-								lis.status = 'error'
-							}else if (lis.key === rightTemp) {
-								lis.status = 'correct'
+					this.currentQuestion.answerMapList.map(subs => {
+						if(subs.key === item.key) {
+							subs.status = 'select'
+						} else {
+							subs.status = ''
+						}
+					})
+					this.$forceUpdate()
+				}
+				//做过样式
+				if(this.answerArr.length) {
+					this.totalArr[this.currentSubject-1] = 'blue'
+				} else {
+					this.totalArr[this.currentSubject-1] = '1'
+				}
+				console.log(this.totalArr)
+				this.$forceUpdate()
+			},
+			saveAnswer() {
+				const that = this
+				var kong
+				if(this.answerArr.length === 0) {
+					if(this.submitAnswer.length) {
+						this.submitAnswer.map((item, i)=> {
+							if(item.code === this.currentQuestion.code) {
+								kong = i
+								console.log(999999999999)
+								this.submitAnswer.splice(kong,1)
 							}
 						})
-						this.submitAnswer.push({
-							code: this.currentQuestion.code,
-							answer: rightTemp,
-						    isRight: 2,
-						})
-						this.currentQuestion.isSelect = 2
 					}
+					return
 				}
-				console.log(this.answerArr)
+				let isRight
+				if (this.answerArr.sort().toString() === this.currentQuestion.rightAnswerList.toString()) {
+				   isRight = 1
+				   this.score ++
+				} else {
+				   isRight = 2
+				}
+				const params = {
+					code: this.currentQuestion.code,
+					answer: this.answerArr.join(','),
+					isRight: isRight
+				}
+				let ishave
+				if(this.submitAnswer.length) {
+					this.submitAnswer.map((item, i)=> {
+						if(item.code === params.code) {
+							this.submitAnswer[i] = params
+							ishave = true
+						} else {
+							if(i === this.submitAnswer.length-1&&!ishave) {
+								that.getpush(params)
+							}
+						}
+					})
+				} else {
+					console.log('push')
+					this.submitAnswer.push(params)					
+				}
+				console.log(this.submitAnswer)
 			},
-			submitAnswer() {
+			submitHandle() {
 				//多选提交答案
-				console.log(this.answerArr)
+				// console.log(this.answerArr)
 				if (this.answerArr.sort().toString() === this.currentQuestion.rightAnswerList.toString()) {
 					this.currentQuestion.isSelect = 1
 					this.submitAnswer.push({
 						code: this.currentQuestion.code,
 						answer: this.answerArr.join(','),
-						isRight: 2,
+						isRight: 1,
 					})
+					this.score ++
 				} else {
 					this.currentQuestion.isSelect = 2
 					this.submitAnswer.push({
 						code: this.currentQuestion.code,
 						answer: this.answerArr.join(','),
 						isRight: 2,
-					})
-				}
-			},
-			collectionHandle() {
-				if (this.collectionIcon === 'collection') {
-					this.collectionIcon = 'collection_fill'
-					wx.showToast({
-						title: '已收藏此题',
-						icon: 'success',
-						duration: 2000
-					})
-				} else {
-					this.collectionIcon = 'collection'
-					wx.showToast({
-						title: '已取消收藏此题',
-						icon: 'none',
-						duration: 2000
 					})
 				}
 			}
@@ -228,7 +316,14 @@ import { formatTime } from '../../utils/common.js'
 	.exam_header {
 		font-size: 16px;
 		color:#333;
+		height: 40px;
 		margin-top: 20px;
+	}
+	.exam_header span {
+		margin-top: 20px;
+	}
+	.exam_header .fr {
+		line-height: 40px;
 	}
 	.date {
 		font-size: 12px;
@@ -280,6 +375,10 @@ import { formatTime } from '../../utils/common.js'
 		border-radius: 25px;
 		float: left;
 		margin: 5px;
+	}
+	.blue span{
+		background-color: #2d8cf0;
+		color:#fff !important;
 	}
 	.select_box span:hover {
 		color: #2d8cf0;
@@ -351,7 +450,13 @@ import { formatTime } from '../../utils/common.js'
 		left: -2px;
 		top: -1px;
 	}
-	.jiao {
-		width: 60px;
+	.scroe_txt {
+		text-align: center;
+		line-height: 30px;
+	}
+	.scroe_txt span {
+		color: #35db9c;
+		font-size: 20px;
+		padding-right: 3px;
 	}
 </style>

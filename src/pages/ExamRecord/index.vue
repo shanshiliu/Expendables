@@ -17,19 +17,16 @@
 			</div>
 			<div class="select_group">
 				<div
-				 :key="index" v-for="(item,index) in currentQuestion.answerList" @click="selectAnswer(index, questionStyle,item)">
+				 :key="index" v-for="(item,index) in currentQuestion.answerMapList">
 				 <span class="inline_icon"><i :class="{'iconfont':true,'icon-xuanze':true,
 					'icon-unif060':item.status==='error','icon-ShapeCopy':item.status==='correct','icon-xuanzhong':item.status==='select'}"
-					style="color:#2d8cf0;font-size:20px"></i></span>{{item}}
+					style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}{{item.value}}
 				</div>
 			</div>
 		</div>
 		<div>
-			<i-button i-class="btn_question" size="small" shape="circle" type="primary" v-if="questionStyle==='多选'"  @click="submitAnswer">提交</i-button>
-		</div>
-		<div v-if="showAnswer">
 			<span>{{descText}}</span>
-			正确答案： a b c
+			正确答案： <span v-for="(item,index) in currentQuestion.rightAnswerList" :key="String(index)">{{item}}</span>
 		</div>
 		<div class="box_bottom">
 			 <i-button i-class="btn_question" size="small" @click="prevHandle" :disabled="currentSubject===1">上一题</i-button>
@@ -39,7 +36,6 @@
 			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
 
-		
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
@@ -61,7 +57,7 @@ import { formatTime } from '../../utils/common.js'
 	  	data () {
 			return {
 				currentSubject: 1,
-				total: 100,
+				total: 1,
 				isSelect: false,
 				visible: false,
 				totalArr: [],
@@ -78,7 +74,7 @@ import { formatTime } from '../../utils/common.js'
 			}
 		},
 		onLoad(options) {
-			console.log(options.code)
+			this.currentSubject = 1
 			const that = this
 			this.$ajax({url: '/examRecord/getExamRecord?examCode=' + options.code, method: 'GET'}, function(res) {
 				that.totalQuestion = res.result
@@ -86,6 +82,7 @@ import { formatTime } from '../../utils/common.js'
 				that.total = that.totalQuestion.length
 				that.totalArr = new Array(that.total)
 				that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				that.changeStyle()
 			})
 		},
 		mounted() {
@@ -94,6 +91,39 @@ import { formatTime } from '../../utils/common.js'
 		    wx.setNavigationBarTitle({title: '考试记录'})
 		},
 		methods: {
+			changeStyle() {
+				// 改变样式
+				const that = this
+				if(that.questionStyle === '多选') {
+					that.currentQuestion.answerMapList = that.currentQuestion.answerMapList.map(subs => {
+						let str = that.currentQuestion.answer
+						if (str.indexOf(subs.key)>-1) {
+							subs['status'] = 'select'
+						}
+						return subs
+					})
+					if(that.currentQuestion.rightAnswerList.toString() === that.currentQuestion.answer.replace(/,/g,'')) {
+						that.descText = '您做对了！'
+					} else {
+						that.descText = '您做错了！'
+					}
+				} else if(that.questionStyle === '单选') {
+					that.currentQuestion.answerMapList = that.currentQuestion.answerMapList.map(subs => {
+						if (that.currentQuestion.rightAnswerList.toString() === that.currentQuestion.answer) {
+							that.descText = '您做对了！'
+						}
+						if (that.currentQuestion.rightAnswerList.toString() === subs.key) {
+							subs['status'] = 'correct'
+						}
+						if(that.currentQuestion.rightAnswerList.toString() != that.currentQuestion.answer && that.currentQuestion.answer === subs.key) {
+							subs['status'] = 'error'
+							that.descText = '您做错了！'
+						}
+						return subs
+					})
+					
+				}
+			},
 			handleChange(e) {
 				this.tabActive = e.mp.detail.key
 			},
@@ -102,18 +132,20 @@ import { formatTime } from '../../utils/common.js'
 					return
 				}
 				this.currentSubject --
-				this.currentQuestion = this.totalQuestion[this.currentSubject]
+				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
 				this.isSelect = false
 				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				this.changeStyle()
 			},
 			nextHandle() {
 				if(this.currentSubject === this.total) {
 					return
 				}
 				this.currentSubject ++
-				this.currentQuestion = this.totalQuestion[this.currentSubject]
+				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
 				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				this.isSelect = false
+				this.changeStyle()
 			},
 			openModal() {
 				this.visible = true
