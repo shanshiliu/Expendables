@@ -1,8 +1,8 @@
 <template>
   <div class="container ub-box ub-col">
     <dl class="ub-box z-padding-all-10-px" style="background:#fff">
-      <dd :class="{'ub-box':true, 'ub-ver':true, 'vip_item':isLogin===true}">
-         <image :src="userInfo.avatarUrl" class="head-img" mode="aspectFill"></image>
+      <dd :class="{'ub-box':true, 'ub-ver':true, 'img_l':true, 'vip_item':isLogin===true}">
+         <image :src="userInfo.avatarUrl" class="head-img" mode="aspectFill" v-if="isLogin===true"></image>
       </dd>
       <dd class="ub-flex-1 z-font-size-18 z-color-333 ub-box ub-ver-v z-padding-h-10-px">
         <button v-if="isLogin===false" class="loginBtn" lang="zh_CN" open-type="getUserInfo" @getuserinfo="onGetUserInfo">登录</button>
@@ -17,7 +17,7 @@
       </dd>
     </dl>
     <dl class="ub-box ub-col z-margin-top-10-px" style="background:#fff;">
-      <dd @click.stop="$openWin('/pages/buyVip/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+      <dd @click.stop="handleJump('/pages/buyVip/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-huiyuan" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">购买会员</span>
@@ -26,7 +26,16 @@
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
         </p>
       </dd>
-      <dd @click.stop="$openWin('/pages/citySelect/main?id=1')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+      <dd @click.stop="handleJump('/pages/account/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+        <p class="ub-box ub-ver">
+        <i class="iconfont icon-huiyuan" style="color:#2d8cf0;font-size:20px"></i>
+        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">卡密激活</span>
+        </p>
+        <p class="ub-box ub-ver">
+        <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
+        </p>
+      </dd>
+      <dd @click.stop="handleJump('/pages/citySelect/main?id=1')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-renyuanxuanzetubiao" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">我的工种 (切换)</span>
@@ -35,7 +44,7 @@
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
         </p>
       </dd>
-      <dd @click.stop="$openWin('/pages/citySelect/main?id=2')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+      <dd @click.stop="handleJump('/pages/citySelect/main?id=2')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-xuanzetubiao" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">选择 (添加) 工种</span>
@@ -51,13 +60,6 @@
         </p>
       </dd>
     </dl>
-
-    <i-modal title="登录成功" :visible="visible"  @ok="handleOk" @cancel="handleCancel">
-      <div class="card_txt">
-        <div>如有卡密号，请输入卡密号登录获得更多会员权限</div>
-          <input class="card_input" v-model="cardNumber" type="text" autofocus>
-      </div>
-    </i-modal>
   </div>
 </template>
 <script>
@@ -68,7 +70,7 @@ export default {
     },
     userInfo () {
       return this.$store.state.userInfo
-    }
+    },
   },
   data () {
     return {
@@ -77,6 +79,7 @@ export default {
   },
   methods: {
     onGetUserInfo (e) {
+      //登录授权
       const that = this
       if (e.mp.detail.rawData){
 				console.log('用户按了允许授权按钮')
@@ -92,7 +95,6 @@ export default {
       info['iv'] = e.mp.detail.iv
       info['signature'] = e.mp.detail.signature
       info['rawData'] = e.mp.detail.rawData
-      this.$store.commit('updateIsLogin', true)
       this.$store.commit('updateUser', info)
       wx.login({
         success(res) {
@@ -100,20 +102,33 @@ export default {
             // 发起网络请求
             const data = e.mp.detail.userInfo
             info['code'] = res.code
-            console.log(info)
+            // console.log(info)
             that.$store.commit('updateUser', info)
-            that.visible = true
             //请求后台登录
             that.$ajax({
               url: '/wxUser/loginChecked',
               data: {
+                //7微信 8普通 6卡密
                 "userMobile": "15721305936",
                 "password": "123",
-                "userOpenid": "1"
+                "userOpenid": "1",
+                userInfo: data,
               },
               method: 'POST'
             }, function(res) {
               console.log('登录成功了')
+              if (res.status === 'success') {
+                that.$store.commit('updateAccount', res.result)
+                that.$store.commit('updateIsLogin', true)
+                wx.setStorage({
+                  key: 'token',
+                  data: res.result.token
+                })
+                wx.setStorage({
+                  key: 'accountInfo',
+                  data: res.result
+                })
+              }
             })
           } else {
             console.log('登录失败！' + res.errMsg)
@@ -131,20 +146,32 @@ export default {
 				// }
 				// this.$ajax()
     },
-    handleOk(index) {
-      this.visible = false
-      const that = this
-      this.$toast({
-        content: '超级会员权限开通成功，祝您做题顺利',
-        type: 'success'
-      });
-    },
-    handleCancel(index) {
-      this.visible = false
+    handleJump(url) {
+      if (!this.isLogin) {
+        wx.showToast({
+          title: '请先登录',
+          icon: 'none',
+          duration: 2000
+        })
+        return
+      }
+      this.$openWin(url)
     },
     exitLogin() {
       this.$store.commit('updateIsLogin', false)
       this.$store.commit('cleanUserInfo')
+      this.$store.commit('cleanAccount')
+      wx.removeStorage({
+        key: 'token',
+        success(res) {
+          console.log(res)
+        }
+      })
+      wx.showToast({
+        title: '已退出',
+        icon: 'none',
+        duration: 2000
+      })
     },
     clickCall() {
       wx.showActionSheet({
@@ -171,6 +198,9 @@ export default {
   .exitBtn{border: 1px solid #2d8cf0;padding:7px 15px;color:#2d8cf0;border-radius: 3px}
   .vip_item {
     position: relative;
+  }
+  .img_l {
+    width:70px;height:70px;border-radius:50%;box-shadow:0 0 5px rgba(0,0,0,.2);background:#eee
   }
   .vip_item:after {
     content: 'v';

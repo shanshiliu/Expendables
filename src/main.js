@@ -45,6 +45,7 @@ export default {
       'pages/record/main',
       'pages/help/main',
       'pages/root/main',
+      'pages/account/main',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -80,7 +81,10 @@ export default {
       "i-input": "/static/iview/input/index",
       "i-toast": "/static/iview/toast/index",
       "i-tabs": "/static/iview/tabs/index",
-      "i-tab": "/static/iview/tab/index"
+      "i-tab": "/static/iview/tab/index",
+      "i-collapse": "/static/iview/collapse/index",
+      "i-collapse-item": "/static/iview/collapse-item/index",
+      "i-drawer": "/static/iview/drawer/index"
     }
   }
 }

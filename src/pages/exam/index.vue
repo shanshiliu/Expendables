@@ -133,7 +133,7 @@ import { formatTime } from '../../utils/common.js'
 				this.$ajax({url: '/question/commitExam', method: 'POST' , data: data}, function(res) {
 					if(res.status === 'success') {
 						that.visibleB = false
-						that.visibleC = false
+						that.visibleC = true
 					}
 				})
 			},
@@ -305,6 +305,20 @@ import { formatTime } from '../../utils/common.js'
 					})
 				}
 			}
+		},
+		onUnload() {
+			this.saveAnswer()
+			const that = this
+			const data = {
+				score: this.score,
+				examEndTime: formatTime(new Date()),
+				questions: this.submitAnswer
+			}
+			this.$ajax({url: '/question/commitExam', method: 'POST' , data: data}, function(res) {
+				if(res.status === 'success') {
+					console.log('提交考试成功')
+				}
+			})
 		}
 	}
 </script>

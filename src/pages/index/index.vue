@@ -15,7 +15,7 @@
       <dl class="ub-box ub-wrap z-padding-v-5-px">
         <div
           :class="{'icon-item':true,'ub-box':true,'ub-col':true, 'ub-ver':true,vip_icon: idx.title==='全真题库'}"
-          :key="String(key)" v-for="(idx, key) in iconMap" @click.stop="$openWin(idx.url)">
+          :key="String(key)" v-for="(idx, key) in iconMap" @click.stop="handleJump(idx.url)">
           <div>
             <dd class="icon ub-box ub-ver iconfont" :class="key" :style="{background: iconMap[key]['bk']}"></dd>
             <span class="z-padding-v-8-px z-font-size-12 z-color-333">{{iconMap[key]['title']}}</span>
@@ -40,7 +40,7 @@
           'http://p0.meituan.net/codeman/daa73310c9e57454dc97f0146640fd9f69772.jpg'
         ],
         iconMap: {
-          'icon-zhiye1': {title: '选择工种', bk: '#EF8B3E', url: '/pages/citySelect/main'}, 
+          'icon-zhiye1': {title: '选择工种', bk: '#EF8B3E', url: '/pages/citySelect/main?id=2'}, 
           'icon-tiku': {title: '全真题库', bk: '#5DC7B0', url: '/pages/Exercise/main'},
           'icon-monikaoshi': {title: '模拟考试', bk: '#8B67E5', url: '/pages/exam/main'},
           'icon-cuotiben': {title: '错  题  集', bk: '#E4463B', url: '/pages/wrongBook/main'},
@@ -52,7 +52,54 @@
         visible: true,
       }
     },
+    computed: {
+      isLogin() {
+        return this.$store.state.isLogin
+      },
+      accountInfo() {
+        return this.$store.state.accountInfo
+      }
+    },
     methods: {
+      handleJump(url) {
+        if (!this.isLogin) {
+          wx.showToast({
+            title: '请先登录',
+            icon: 'none',
+            duration: 2000
+          })
+          return
+        }
+        if(url === '/pages/Exercise/main') {
+          if (this.accountInfo.isActiveCard === 2 || this.accountInfo.isActiveCard) {
+            wx.showToast({
+              title: '您还没有做题权限，请激活卡密',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+          return
+        }
+        if(url === '/pages/exam/main') {
+          if (!this.accountInfo.styleCode) {
+            wx.showToast({
+              title: '请先选择工种',
+              icon: 'none',
+              duration: 2000
+            })
+            return
+          }
+          if (!this.accountInfo.remainingNum && this.accountInfo.isActiveCard != 1) {
+            wx.showToast({
+              title: '免费考试次数已用完',
+              icon: 'none',
+              duration: 2000
+            })
+            return
+          }
+        }  
+        this.$openWin(url)
+      },
     },
     mounted() {
       

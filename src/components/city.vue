@@ -11,7 +11,7 @@
         <dd class="ub-box ub-col">
           <div class="z-width-100-percent z-bg-color-fff ub-box ub-col">
             <ul class="ub-box ub-col">
-              <li @click.stop="clickCity(city)" v-for="(city, i) in cityList" :key="String(i)" class="city ub-flex-1 z-font-size-14 z-color-666">{{city.workStyleName || city.workStyleChildName || city.styleName}}
+              <li @click.stop="clickCity(city)" v-for="(city, i) in cityList" :key="String(i)" class="city ub-flex-1 z-font-size-14 z-color-666">{{city.styleName}}
                 <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888 "></i>
               </li>
             </ul>
@@ -33,6 +33,11 @@
         ],
         id: '',
         current: {},
+      }
+    },
+    computed: {
+      accountInfo() {
+        return this.$store.state.accountInfo
       }
     },
     onLoad(options) {
@@ -80,6 +85,13 @@
                   if (res.status === 'success') {
                     if (that.id === '1') {
                       that.current = city
+                    }
+                    console.log(that.id)
+                    console.log(that.accountInfo)
+                    if(that.id === '2' && !that.accountInfo.styleCode) {
+                      that.accountInfo.styleCode = city.styleCode
+                      that.$store.commit('updateAccount', that.accountInfo)
+                      console.log('更新工种')
                     }
                     wx.showToast({
                       title: '选择工种成功，赶紧做题吧',

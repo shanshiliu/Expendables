@@ -12,6 +12,13 @@ const store = new Vuex.Store({
     	nickName: '',
     	province: ''
     },
+    accountInfo: {
+      isActiveCard: '',
+      isChooseStyle: '',
+      useingEndTime: '',
+      remainingNum: '',
+      styleCode: ''
+    },
   },
   mutations: {
     updateCity: (state, change) => {
@@ -19,7 +26,20 @@ const store = new Vuex.Store({
     },
     updateIsLogin: (state, change) => {
   		state.isLogin = change
-  	},
+    },
+    updateAccount: (state, change) => {
+      state.accountInfo = change
+    },
+    cleanAccount: (state,change) => {
+      state.accountInfo = {
+        isActiveCard: '',
+        isChooseStyle: '',
+        useingEndTime: '',
+        remainingNum: '',
+        styleCode: '',
+        token: '',
+      }
+    },
   	cleanUserInfo: (state) => {
   		state.userInfo = {
   			avatarUrl: '',
@@ -27,7 +47,8 @@ const store = new Vuex.Store({
 	    	gender: '',
 	    	nickName: '',
 	    	province: ''
-  		}
+      }
+      console.log('用户数据清空')
   	},
     updateUser: (state, change) => {
       change.gender = change.gender === 1 ? '男' : '女'
