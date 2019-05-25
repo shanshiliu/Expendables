@@ -8,22 +8,31 @@ export default {
     console.log('app created and cache logs by setStorageSync')
     //小程序登陆
     const that = this
-    wx.getSetting({
-      success(res) {
-        console.log(res)
-        if (res.authSetting['scope.userInfo']) {
-          wx.getUserInfo({
-            success: function(res) {
-              console.log(res.userInfo)
-              console.log('用户已经授权过')
-            }
-          })
-        }else{
-          console.log('用户还未授权过')
-          // wx.switchTab({url: '/pages/self/main'})
-        }
-      }
-    })
+    // wx.getSetting({
+    //   success(res) {
+    //     console.log(res)
+    //     if (res.authSetting['scope.userInfo']) {
+    //       wx.getUserInfo({
+    //         success: function(res) {
+    //           that.$store.commit('updateUser', res.userInfo)
+    //           that.$store.commit('updateLogin', true)
+    //           console.log('用户已经授权过')
+    //         }
+    //       })
+    //     }else{
+    //       console.log('用户还未授权过')
+    //     }
+    //   }
+    // })
+    const systemInfo =  wx.getSystemInfoSync()
+    console.log(systemInfo)
+    let isApple
+    if(systemInfo.model.indexOf('iPhone') > -1) {
+      isApple = true
+    } else {
+      isApple = false
+    }
+    wx.setStorageSync('isApple', isApple)
   }
 }
 </script>

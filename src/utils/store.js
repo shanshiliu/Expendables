@@ -30,6 +30,9 @@ const store = new Vuex.Store({
     updateAccount: (state, change) => {
       state.accountInfo = change
     },
+    updateLogin: (state,change) => {
+      state.isLogin = change
+    },
     cleanAccount: (state,change) => {
       state.accountInfo = {
         isActiveCard: '',

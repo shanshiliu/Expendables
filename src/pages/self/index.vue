@@ -17,7 +17,7 @@
       </dd>
     </dl>
     <dl class="ub-box ub-col z-margin-top-10-px" style="background:#fff;">
-      <dd @click.stop="handleJump('/pages/buyVip/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+      <dd @click.stop="handleJump('/pages/buyVip/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee" v-if="!isApple">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-huiyuan" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">购买会员</span>
@@ -53,6 +53,15 @@
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
         </p>
       </dd>
+      <dd @click.stop="handleJump('/pages/message/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+        <p class="ub-box ub-ver">
+        <i class="iconfont icon-bangzhufankui1" style="color:#2d8cf0;font-size:20px"></i>
+        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">我的留言反馈</span>
+        </p>
+        <p class="ub-box ub-ver">
+        <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
+        </p>
+      </dd>
        <dd @click.stop="clickCall()" class="z-padding-all-10-px ub-box ub-between">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-dianhua" style="color:#2d8cf0;font-size:20px"></i>
@@ -66,44 +75,44 @@
 export default {
   computed: {
     isLogin() {
-      return this.$store.state.isLogin
+      return this.accountInfo.token ? true : false
     },
     userInfo () {
-      return this.$store.state.userInfo
+      return this.accountInfo
     },
   },
   data () {
     return {
-      visible: false
+      visible: false,
+      accountInfo: {},
+      isApple: false,
     }
+  },
+  onLoad() {
+    this.accountInfo = wx.getStorageSync('accountInfo')
+    this.isApple = wx.getStorageSync('isApple')
   },
   methods: {
     onGetUserInfo (e) {
       //登录授权
       const that = this
       if (e.mp.detail.rawData){
-				console.log('用户按了允许授权按钮')
-				console.log(e.mp.detail.iv)
-        console.log(e.mp.detail.encryptedData)
-        console.log(e.mp.detail)
+				console.log('用户允许授权')
 			} else {
-				//用户按了拒绝按钮
-				console.log('用户按了拒绝按钮')
+        console.log('用户拒绝按钮')
+        return
       }
       const info = e.mp.detail.userInfo
       info['encryptedData'] = e.mp.detail.encryptedData
       info['iv'] = e.mp.detail.iv
       info['signature'] = e.mp.detail.signature
       info['rawData'] = e.mp.detail.rawData
-      this.$store.commit('updateUser', info)
       wx.login({
         success(res) {
           if (res.code) {
             // 发起网络请求
             const data = e.mp.detail.userInfo
             info['code'] = res.code
-            // console.log(info)
-            that.$store.commit('updateUser', info)
             //请求后台登录
             that.$ajax({
               url: '/wxUser/loginChecked',
@@ -116,18 +125,11 @@ export default {
               },
               method: 'POST'
             }, function(res) {
-              console.log('登录成功了')
               if (res.status === 'success') {
-                that.$store.commit('updateAccount', res.result)
-                that.$store.commit('updateIsLogin', true)
-                wx.setStorage({
-                  key: 'token',
-                  data: res.result.token
-                })
-                wx.setStorage({
-                  key: 'accountInfo',
-                  data: res.result
-                })
+                const info = Object.assign(data, res.result)
+                wx.setStorageSync('token',res.result.token)
+                wx.setStorageSync('accountInfo', info)
+                that.accountInfo = info
               }
             })
           } else {
@@ -135,16 +137,6 @@ export default {
           }
         }
       })
-      // const options = {
-				// 	url: 'http://192.168.235.1:1234/expendables/api/wxUser/loginChecked',
-				// 	method: 'POST',
-				// 	data: {
-				// 		"userMobile": "15721305936",
-				// 		"password": "123",
-				// 		"userOpenid": "1"
-				// 	} 
-				// }
-				// this.$ajax()
     },
     handleJump(url) {
       if (!this.isLogin) {
@@ -158,13 +150,17 @@ export default {
       this.$openWin(url)
     },
     exitLogin() {
-      this.$store.commit('updateIsLogin', false)
-      this.$store.commit('cleanUserInfo')
-      this.$store.commit('cleanAccount')
+      const that = this
       wx.removeStorage({
         key: 'token',
         success(res) {
           console.log(res)
+        }
+      })
+      wx.removeStorage({
+        key: 'accountInfo',
+        success(res) {
+          that.accountInfo = {}
         }
       })
       wx.showToast({
@@ -185,9 +181,6 @@ export default {
         }
       })
     }
-  },
-  onShow () {
-    // wx.setNavigationBarTitle({title: '特易过'})
   }
 }
 </script>

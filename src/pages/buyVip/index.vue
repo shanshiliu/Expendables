@@ -15,7 +15,6 @@
 					<div>卡密兑换</div>
 					<div class="slogin">享受独家最高题库权限，考试无忧。</div>
 				</div>
-				
 			</div>
 			<div :class="{lis:true, line_height: current===2}" @click="selectHandle(2)">
 				<div class="fl">
@@ -172,6 +171,8 @@ import {formatTime} from '../../utils/common.js'
 		padding: 0 30px;
 		box-shadow:2px 2px 15px #333333;
 		line-height: 100px;
+		background: #fff;
+		z-index: 11;
 	}
 	.btn button {
 		width: 120px;

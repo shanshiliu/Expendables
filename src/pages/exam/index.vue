@@ -21,9 +21,20 @@
 				</div>
 			</div>
 		</div>
-		<div v-if="questionStyle==='多选'&&!currentQuestion.isSelect">
-			<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitHandle">提交</i-button>
+		<div>
+			<view class="view-wrap">
+				<text class="type-title">倒计时：</text>
+				<i-count-down
+						class="count_down"
+						:target="targetTime"
+						:clear-timer="clearTimer"
+						bind:callback="myLinsterner"
+				></i-count-down>
+			</view>
 		</div>
+		<!-- <div v-if="questionStyle==='多选'&&!currentQuestion.isSelect">
+			<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitHandle">提交</i-button>
+		</div> -->
 		<!-- <div v-if="currentQuestion.isSelect" :class="{'is_error':currentQuestion.isSelect===2,'is_right':currentQuestion.isSelect===1}">
 			<span v-if="currentQuestion.isSelect===1">您最对了！</span>
 			<span v-if="currentQuestion.isSelect===2">您做错了</span>
@@ -98,10 +109,13 @@ import { formatTime } from '../../utils/common.js'
 						color: '#2d8cf0'
 					},
 				],
+				targetTime: 0,
+				clearTimer: false,
 			}
 		},
 		onLoad() {
 			const that = this
+			this.targetTime = new Date().getTime() + 5400000,
 			this.$ajax({url: '/question/exam', method: 'POST'}, function(res) {
 				that.totalQuestion = res.result
 				// that.totalQuestion = [{"code":"19ZJ8779271","question":"桥式起重机运行轨道两条钢轨中心线之间的距离称为起重机轨距。","styleCode":"S00000000000000000003","score":0,"isDoIt":0,"rightAnswerList":["A"],"answerList":[],"answerMapList":[{"value":"正确","key":"A"},{"value":"错误","key":"B"}],"imageList":[]},{"code":"50ZJ8458559","question":"如图所示,该图标表示什么？","styleCode":"S00000000000000000003","score":0,"isDoIt":0,"rightAnswerList":["C"],"answerList":[],"answerMapList":[{"value":"散装物捆扎不牢不吊","key":"A"},{"value":"锋利边缘无保护不吊","key":"B"},{"value":"歪拉斜吊不吊","key":"C"},{"value":"物体上有人不吊","key":"D"}],"imageList":[]}]
@@ -125,6 +139,11 @@ import { formatTime } from '../../utils/common.js'
 			handleOk() {
 				this.saveAnswer()
 				const that = this
+				for(var i=0; i< this.submitAnswer.length; i++) {
+					if(this.submitAnswer[i].isRight === 1) {
+						this.score ++
+					}
+				}
 				const data = {
 					score: this.score,
 					examEndTime: formatTime(new Date()),
@@ -143,7 +162,7 @@ import { formatTime } from '../../utils/common.js'
 			handleScore(e) {
 				console.log(e)
 				this.visibleC = false
-				that.$redirectTo('/pages/record/main')
+				this.$redirectTo('/pages/record/main')
 			},
 			handleBack() {
 				this.$backBeaforWin()
@@ -200,6 +219,9 @@ import { formatTime } from '../../utils/common.js'
 						}
 					})
 				}
+			},
+			myLinsterner() {
+				this.handleOk()
 			},
 			selectAnswer(index, item) {
 				if (this.currentQuestion.isSelect) {
@@ -258,7 +280,6 @@ import { formatTime } from '../../utils/common.js'
 				let isRight
 				if (this.answerArr.sort().toString() === this.currentQuestion.rightAnswerList.toString()) {
 				   isRight = 1
-				   this.score ++
 				} else {
 				   isRight = 2
 				}
@@ -284,31 +305,16 @@ import { formatTime } from '../../utils/common.js'
 					this.submitAnswer.push(params)					
 				}
 				console.log(this.submitAnswer)
-			},
-			submitHandle() {
-				//多选提交答案
-				// console.log(this.answerArr)
-				if (this.answerArr.sort().toString() === this.currentQuestion.rightAnswerList.toString()) {
-					this.currentQuestion.isSelect = 1
-					this.submitAnswer.push({
-						code: this.currentQuestion.code,
-						answer: this.answerArr.join(','),
-						isRight: 1,
-					})
-					this.score ++
-				} else {
-					this.currentQuestion.isSelect = 2
-					this.submitAnswer.push({
-						code: this.currentQuestion.code,
-						answer: this.answerArr.join(','),
-						isRight: 2,
-					})
-				}
 			}
 		},
 		onUnload() {
 			this.saveAnswer()
 			const that = this
+			this.submitAnswer.map(item => {
+				if(item.isRight) {
+					this.score ++
+				}
+			})
 			const data = {
 				score: this.score,
 				examEndTime: formatTime(new Date()),
@@ -472,5 +478,8 @@ import { formatTime } from '../../utils/common.js'
 		color: #35db9c;
 		font-size: 20px;
 		padding-right: 3px;
+	}
+	.count_down {
+		display: inline-block;
 	}
 </style>

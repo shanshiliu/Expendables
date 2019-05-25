@@ -63,7 +63,7 @@
 				@cancel="handleClose" i-class="action_sheets">
 					<view slot="header" style="margin: 16px">
 						<div style="background: red">
-							<span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject,'blue':item==='blue'}" :key="index" v-for="(item,index) in totalArr" 
+							<span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject,'blue':item==='blue','red':item ==='red'}" :key="index" v-for="(item,index) in totalArr" 
 							@click="selectHandle(index)">
 								<span>{{index+1}}</span>
 							</span>
@@ -141,6 +141,7 @@ import { formatTime } from '../../utils/common.js'
 			selectHandle(index) {
 				this.currentSubject = index+1
 				this.currentQuestion = this.totalQuestion[index]
+				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				this.visible = false
 			},
 			selectAnswer(index, item) {
@@ -192,13 +193,9 @@ import { formatTime } from '../../utils/common.js'
 					// })
 				}
 				//做过样式
-				if(this.answerArr.length && this.questionStyle === '单选') {
-					this.totalArr[this.currentSubject-1] = 'blue'
-				} else {
-					this.totalArr[this.currentSubject-1] = '1'
+				if(this.questionStyle === '单选') {
+					this.totalArr[this.currentSubject-1] = this.currentQuestion.isSelect=== 2 ? 'red' : 'blue'
 				}
-				// console.log(this.totalArr)
-				console.log(this.answerArr)
 			},
 			submitHandle() {
 				console.log(this.answerArr)
@@ -220,11 +217,8 @@ import { formatTime } from '../../utils/common.js'
 				// 	}
 				// })
 				//做过样式
-				if(this.answerArr.length && this.questionStyle === '单选') {
-					this.totalArr[this.currentSubject-1] = 'blue'
-				} else {
-					this.totalArr[this.currentSubject-1] = '1'
-				}
+				this.totalArr[this.currentSubject-1] = this.currentQuestion.isSelect === 2 ? 'red' : 'blue'
+
 			},
 			collectionHandle() {
 				const that = this
@@ -324,6 +318,12 @@ import { formatTime } from '../../utils/common.js'
 	}
 	.blue span{
 		background-color: #2d8cf0;
+		border: 1px solid #2d8cf0 !important;
+		color:#fff !important;
+	}
+	.red span{
+		background-color: #e65757;
+		border: 1px solid #e65757 !important;
 		color:#fff !important;
 	}
 	.select_box span:hover {

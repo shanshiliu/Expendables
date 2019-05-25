@@ -10,8 +10,8 @@
 	},
 	"miniprogramRoot": "dist/",
 	"compileType": "miniprogram",
-	"appid": "wxb4586cc4efe77644",
-	"projectname": "mpvue-meituan",
+	"appid": "wx8e9fb083f335323b",
+	"projectname": "Expendables",
 	"simulatorType": "wechat",
 	"simulatorPluginLibVersion": {},
 	"condition": {

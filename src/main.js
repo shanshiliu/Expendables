@@ -46,6 +46,9 @@ export default {
       'pages/help/main',
       'pages/root/main',
       'pages/account/main',
+      'pages/certificate/main',
+      'pages/webview/main',
+      'pages/message/main',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -79,12 +82,8 @@ export default {
       "i-toast": "/static/iview/toast/index",
       "i-action-sheet": "/static/iview/action-sheet/index",
       "i-input": "/static/iview/input/index",
-      "i-toast": "/static/iview/toast/index",
-      "i-tabs": "/static/iview/tabs/index",
-      "i-tab": "/static/iview/tab/index",
-      "i-collapse": "/static/iview/collapse/index",
-      "i-collapse-item": "/static/iview/collapse-item/index",
-      "i-drawer": "/static/iview/drawer/index"
+      "i-drawer": "/static/iview/drawer/index",
+      "i-count-down": "/static/iview/count-down/index"
     }
   }
 }
