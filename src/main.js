@@ -30,6 +30,7 @@ export default {
     // 页面前带有 ^ 符号的，会被编译成首页，其他页面可以选填，我们会自动把 webpack entry 里面的入口页面加进去
     pages: [
       '^pages/index/main',
+      'pages/info/main',
       'pages/Exercise/main',
       'pages/self/main',
       'pages/citySelect/main',
@@ -83,7 +84,9 @@ export default {
       "i-action-sheet": "/static/iview/action-sheet/index",
       "i-input": "/static/iview/input/index",
       "i-drawer": "/static/iview/drawer/index",
-      "i-count-down": "/static/iview/count-down/index"
+      "i-count-down": "/static/iview/count-down/index",
+      "i-tabs": "/static/iview/tabs/index",
+      "i-tab": "/static/iview/tab/index"
     }
   }
 }

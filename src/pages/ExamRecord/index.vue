@@ -3,10 +3,10 @@
 		<scroll-view scroll-y scroll-top="0" class="scroll_100">
         <div class="exam_header">
 			<div>{{currentSubject}}/{{total}}
-				<span v-if="collectionIcon==='collection'" class="fr" @click="collectionHandle"><i-icon type="collection" 
+				<!-- <span v-if="collectionIcon==='collection'" class="fr" @click="collectionHandle"><i-icon type="collection" 
 					size="24" color="#f9e409"/></span>
 					<span v-else class="fr" @click="collectionHandle"><i-icon type="collection_fill" 
-					size="24" color="#f9e409"/></span>
+					size="24" color="#f9e409"/></span> -->
 			</div>
 		</div>
 		<div class="subject">
@@ -20,22 +20,25 @@
 				 :key="index" v-for="(item,index) in currentQuestion.answerMapList">
 				 <span class="inline_icon"><i :class="{'iconfont':true,'icon-xuanze':true,
 					'icon-unif060':item.status==='error','icon-ShapeCopy':item.status==='correct','icon-xuanzhong':item.status==='select'}"
-					style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}{{item.value}}
+					style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}<span class="answer_l" v-html="item.value"></span>
 				</div>
 			</div>
 		</div>
 		<div>
-			<span>{{descText}}</span>
+			<span class="no_css" v-if="descText==='您未做此题！'">{{descText}}</span>
+			<span class="right_css" v-if="descText==='您做对了！'">{{descText}}</span>
+			<span class="error_css" v-if="descText==='您做错了！'">{{descText}}</span>
 			正确答案： <span v-for="(item,index) in currentQuestion.rightAnswerList" :key="String(index)">{{item}}</span>
 		</div>
 		<div class="box_bottom">
 			 <i-button i-class="btn_question" size="small" @click="prevHandle" :disabled="currentSubject===1">上一题</i-button>
 			 <i-button i-class="btn_question" size="small" type="primary" @click="nextHandle" :disabled="currentSubject===total">下一题</i-button>
 		</div>
+		</scroll-view>
+
 		<div class="float_menu icon-item" @click="openModal">
 			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
 		</div>
-
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
@@ -48,7 +51,6 @@
 				</div>
 			</view>
 		</i-action-sheet>
-		</scroll-view>
     </div>
 </template>
 <script>
@@ -85,10 +87,8 @@ import { formatTime } from '../../utils/common.js'
 				that.changeStyle()
 			})
 		},
-		mounted() {
-		},
 		onShow() {
-		    wx.setNavigationBarTitle({title: '考试记录'})
+			wx.setNavigationBarTitle({title: '考试记录'})
 		},
 		methods: {
 			changeStyle() {
@@ -96,20 +96,24 @@ import { formatTime } from '../../utils/common.js'
 				const that = this
 				if(that.questionStyle === '多选') {
 					that.currentQuestion.answerMapList = that.currentQuestion.answerMapList.map(subs => {
-						let str = that.currentQuestion.answer
+						let str = that.currentQuestion.answer || that.currentQuestion.rightAnswerList.toString()
 						if (str.indexOf(subs.key)>-1) {
 							subs['status'] = 'select'
 						}
 						return subs
 					})
-					if(that.currentQuestion.rightAnswerList.toString() === that.currentQuestion.answer.replace(/,/g,'')) {
+					if(!this.currentQuestion.answer) {
+						that.descText = '您未做此题！'
+					} else if(that.currentQuestion.rightAnswerList.toString() === that.currentQuestion.answer.replace(/,/g,'')) {
 						that.descText = '您做对了！'
 					} else {
 						that.descText = '您做错了！'
 					}
 				} else if(that.questionStyle === '单选') {
 					that.currentQuestion.answerMapList = that.currentQuestion.answerMapList.map(subs => {
-						if (that.currentQuestion.rightAnswerList.toString() === that.currentQuestion.answer) {
+						if(!this.currentQuestion.answer) {
+						that.descText = '您未做此题！'
+					  } else if (that.currentQuestion.rightAnswerList.toString() === that.currentQuestion.answer) {
 							that.descText = '您做对了！'
 						}
 						if (that.currentQuestion.rightAnswerList.toString() === subs.key) {
@@ -325,5 +329,14 @@ import { formatTime } from '../../utils/common.js'
 		position: absolute;
 		left: -2px;
 		top: -1px;
+	}
+	.no_css {
+		color: #222;
+	}
+	.right_css {
+		color: #35db9c;
+	}
+	.error_css {
+		color: #e65757;
 	}
 </style>

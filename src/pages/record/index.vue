@@ -5,10 +5,10 @@
         <dd class="ub-box ub-col" v-if="totalQuestion.length">
           <div class="z-width-100-percent z-bg-color-fff ub-box ub-col exam_box">
             <ul class="ub-box ub-col">
-              <li @click.stop="clickRecord(item)" v-for="(item, i) in totalQuestion" :key="i" class="city ub-flex-1 z-font-size-14 z-color-666 exam_li">
+              <li @click.stop="clickRecord(item)" v-for="(item, i) in totalQuestion" :key="i" :class="{'city':true, 'ub-flex-1':true, 'z-font-size-14':true, 'z-color-666':true, 'exam_li':true, 'no_submit':item.examQuestionCount!=100}">
                 <div>考试成绩：{{item.examScore}}分 <span>用时：{{item.timeline}}</span></div>
-                <div>考试时间：{{item.examEndTime}}</div>
-                <span class="fr">查看</span>
+                <div>考试时间：{{item.examStartTime}}</div>
+                <span class="fr" v-if="item.examQuestionCount===100">查看</span>
                 <!-- <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888 "></i> -->
               </li>
             </ul>
@@ -61,16 +61,40 @@
 		},
     methods: {
       clickRecord(item) {
-        var that = this
-        console.log(item.examCode)
-        this.$openWin('/pages/examRecord/main?code=' + item.examCode)
+        if (item.examQuestionCount === 100) {
+          var that = this
+          this.$openWin('/pages/examRecord/main?code=' + item.examCode)
+        }
+        
       }
     },
   }
 </script>
 <style scoped>
-  .city{padding: 10px 8px;border-bottom: 1px solid #f5f5f5}
-  .iconfont{display: inline-black;float: right;}
+  .city{
+    padding: 10px 8px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .no_submit:before {
+    content: '未提交';
+    /* width: 50px; */
+    height: 20px;
+    line-height: 20px;
+    border: 1px solid #e65757;
+    color: #e65757;
+    font-weight: 700;
+    padding: 0 5px;
+    display: inline-block;
+    top: 30px;
+    right: 20px;
+    position: absolute;
+    border-radius: 3px;
+    rotate: 30deg;
+  }
+  .iconfont{
+    display: inline-black;
+    float: right;
+  }
   .exam_box {
     border-top:1px solid #f5f5f5;
     border-bottom:1px solid #f5f5f5;

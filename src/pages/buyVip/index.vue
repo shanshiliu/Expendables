@@ -10,12 +10,12 @@
 				</div>
 		</div>
 		<div class="content">
-			<div :class="{lis:true, line_height: current===1}" @click="selectHandle(1)">
+			<!-- <div :class="{lis:true, line_height: current===1}" @click="selectHandle(1)">
 				<div class="fl">
 					<div>卡密兑换</div>
 					<div class="slogin">享受独家最高题库权限，考试无忧。</div>
 				</div>
-			</div>
+			</div> -->
 			<div :class="{lis:true, line_height: current===2}" @click="selectHandle(2)">
 				<div class="fl">
 					<div>VIP购买</div>
@@ -36,12 +36,29 @@
 			<button class="fr"  @click="buyHandle">{{text}}</button>
 		</div>
 
-		<i-modal title="卡密兑换" :visible="visible" @ok="handleOk" @cancel="handleCancel">
+		<i-modal title="会员开通" :visible="visible" @ok="handleOk" @cancel="handleCancel">
 			<div class="card_txt">
-				<div>请输入卡密号登录获得更多会员权限</div>
-				<input class="card_input" v-model="cardNumber" type="text" autofocus>
+				<div>
+					<view class="section">
+						<!-- <view class="section__title">多列选择器</view> -->
+						<picker
+							mode="multiSelector"
+							@change="bindMultiPickerChange($event)"
+							@columnchange="bindMultiPickerColumnChange($event)"
+							:value="multiIndex"
+							:range="multiArray"
+							:range-key="'styleName'"
+						>
+							<view class="picker">
+							工种选择：<span>{{selectWork.styleName}}</span>
+							</view>
+						</picker>
+					</view>
+				</div>
+				<div class="error_txt">工种一旦绑定不可修改，请确认无误</div>
 			</div>
 		</i-modal>
+		
     </div>
 </template>
 <script>
@@ -49,16 +66,57 @@ import {formatTime} from '../../utils/common.js'
 	export default {
 	  	data () {
 			return {
-				current: 1,
-				text: '兑换',
-				money: 0,
+				current: 2,
+				text: '购买',
+				money: '30.00',
 				visible: false,
 				cardNumber: '',
+				multiArray: [[{}],[{}],[{}]],
+				multiIndex: [0, 0, 0],
+				selectWork: {},
 			}
 		},
 		mounted() {
+			const that = this
+			this.$ajax({url: '/wxUser/getStyle'}, function(res) {
+				const arr = []
+				const arr1 = res.result
+				const arr2 = res.result[0].workStyleChildArray
+				const arr3 = res.result[0].workStyleChildArray[0].styleArray
+				arr.push(arr1,arr2,arr3)
+				that.multiArray = arr
+				console.log(that.multiArray[0][that.multiIndex[0]].styleName)
+			})
 		},
 		methods: {
+			bindMultiPickerChange(e) {
+				// console.log(e)
+				this.selectWork = this.multiArray[2][this.multiIndex[2]]
+			},
+			bindMultiPickerColumnChange(e) {
+				// console.log(e)
+				const column = e.mp.detail.column
+				const value = e.mp.detail.value
+				console.log(value)
+				if (column === 0) {
+					console.log(this.multiArray[column][value])
+					this.multiIndex = [value,0,0]
+					this.multiArray[1] = this.multiArray[column][value].workStyleChildArray
+					this.multiArray[2] = this.multiArray[1][0].styleArray
+					console.log(this.multiArray[1])
+				} else if (column === 1) {
+					this.multiIndex = [this.multiIndex[0],value,0]
+					this.multiArray[2] = this.multiArray[column][value].styleArray
+					// console.log(this.multiArray[column][value],999)
+				} else {
+					this.multiIndex[2] = value
+				}
+				this.multiArray = [this.multiArray[0],this.multiArray[1],this.multiArray[2]]
+				this.selectWork = this.multiArray[2][this.multiIndex[2]]
+				// const index = this.multiIndex[]
+				console.log(this.multiArray[2][this.multiIndex[2]])
+				
+			},
 			selectHandle(num) {
 				this.current = num
 				if(num===1) {
@@ -69,37 +127,125 @@ import {formatTime} from '../../utils/common.js'
 				} else {
 					this.text = '购买'
 					this.money = '5.00'
+					this.payExam()
 				}
 			},
+			payMoney() {
+				const that = this
+				const data = {
+					code: wx.getStorageSync('code'),
+                    styleCode: this.selectWork.styleCode
+				}
+				this.$ajax({url: '/order/createUnifiedOrder', method: 'POST' , data: data}, function(res) {
+					if (res.status === 'error') {
+						wx.showToast({
+							title: res.error.reason,
+							icon: 'none',
+							duration: 2000
+						})
+					} else if(res.status === 'success') {
+						const data = res.result
+						wx.requestPayment({
+							'appId' :res.result.appId,
+							'timeStamp': res.result.timeStamp,
+							'nonceStr': res.result.nonceStr,
+							'package': res.result.packageStr,
+							'signType': 'MD5',
+							'paySign': res.result.paySign,
+							'success':function(res){
+								that.orderSuccess({
+									orderId:data.nonceStr,
+									payType: 0,
+								})
+							},
+							'fail':function(res){
+								console.log(res);
+								console.log('fail');
+							},
+							'complete': function(res){
+								console.log(res);console.log('complete');
+							}
+						})
+					}
+				})
+			},
+			payExam() {
+				const that = this
+				const data = {
+					code: wx.getStorageSync('code'),
+				}
+				this.$ajax({url: '/order/createExamUnifiedOrder', method: 'POST' , data: data}, function(res) {
+					if (res.status === 'error') {
+						wx.showToast({
+							title: res.reason,
+							icon: 'none',
+							duration: 2000
+						})
+					} else if(res.status === 'success') {
+						const data = res.result
+						wx.requestPayment({
+							'appId' :res.result.appId,
+							'timeStamp': res.result.timeStamp,
+							'nonceStr': res.result.nonceStr,
+							'package': res.result.packageStr,
+							'signType': 'MD5',
+							'paySign': res.result.paySign,
+							'success':function(res){
+								that.orderSuccess({
+									orderId:data.nonceStr,
+									payType: 1,
+								})
+							},
+							'fail':function(res){
+								console.log(res);
+								console.log('fail');
+							},
+							'complete': function(res){
+								console.log(res);console.log('complete');
+							}
+						})
+					}
+				})
+			},
+			orderSuccess(data) {
+				const that = this
+				this.$ajax({url: '/order/payDone  ', method: 'POST' , data: data}, function(res) {
+					if(res.status === 'success') {
+						that.updateUserInfo()
+					}
+				})
+			},
+			updateUserInfo() {
+				this.$ajax({url: '/wxUser/getUserInfo  ', method: 'GET'}, function(res) {
+					if(res.status === 'success') {
+						wx.setStorageSync('accountInfo', res.result)
+						wx.setStorageSync('work', res.result.work)
+						wx.showToast({
+							title: '购买成功，快去做题吧',
+							icon: 'none',
+							duration: 2000
+						})
+					}
+				})
+			},
 			buyHandle() {
-				if(this.current === 1) {
+				console.log(8888888888)
+				if(this.current === 2) {
 					this.visible = true
-				} else {
-					
+					return
 				}
 			},
 			handleOk(index) {
-				wx.request({
-						url: 'http://192.168.0.101:1234/expendables/api/wxUser/activeCard',
-						method: 'POST',
-						data: {
-								"cardCode": this.cardNumber,
-								"cardPassword": "98l4oR5Z1IU1F4UwZ6s7p8FNr"
-							},
-						header: {
-							"content-type": "application/json", 
-							'token': '080BA57DAE3D546AD585AF1255B64B177480C34EBA07E445AFE96F1557D8FE3741E9BBC9B7FD181F413F6E095DF769C770DDD3B3E8B6BEF0FBF7A5D6FB3E192616C348D6E386C53E351845E6B8B6D5FC'
-						},
-						success(res) {
-							
-						}
-				})
-				this.$reLaunch('/pages/self/main')
-				this.$toast({
-					content: '兑换成功',
-					type: 'success'
-				});
+				if(!this.selectWork.styleCode) {
+					wx.showToast({
+						title: '请选择工种',
+						icon: 'none',
+						duration: 2000
+					})
+					return
+				}
 				this.visible = false
+				this.payMoney()
 			},
 			handleCancel(index) {
 				this.visible = false
@@ -182,5 +328,28 @@ import {formatTime} from '../../utils/common.js'
 		color: #fff;
 		border-radius: 20px;
 		line-height: 40px;
+	}
+	.section .picker {
+		text-align: left;
+		margin: 0 20px;
+		border: 1px solid #ccc;
+		line-height: 40px;
+	}
+	.picker .input {
+		display: inline-block;
+	}
+	 label {
+		width: 4em;
+		text-align: center;
+		display: inline-block;
+		color: #fff;
+		vertical-align: 6px;
+		line-height: 40px;
+	}
+	.error_txt {
+		color: #e65757;
+		font-size: 14px;
+		text-align: center;
+		margin-bottom: 15px;
 	}
 </style>

@@ -26,13 +26,13 @@
 						:key="index" v-for="(item,index) in currentQuestion.answerMapList" @click="selectAnswer(index,item)">
 						<span class="inline_icon"><i :class="{'iconfont':true,'icon-xuanze':true,
 							'icon-unif060':item.status==='error','icon-ShapeCopy':item.status==='correct','icon-xuanzhong':item.status==='select'}"
-							style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}.{{item.value}}
+							style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}.<span class="answer_l" v-html="item.value"></span>
 						</div>
 					</div>
 					<div class="select_group" v-if="tabActive==='tab2'">
 						<div
 						:key="index" v-for="(item,index) in currentQuestion.answerMapList">
-						<span class="inline_icon"></span>{{item.key}}.{{item.value}}
+						<span class="inline_icon"></span>{{item.key}}.<span class="answer_l" v-html="item.value"></span>
 						</div>
 					</div>
 				</div>
@@ -53,24 +53,24 @@
 					<i-button i-class="btn_question" size="small" @click="jumpHandle('prev')" :disabled="currentSubject===1">上一题</i-button>
 					<i-button i-class="btn_question" size="small" type="primary" @click="jumpHandle('next')" :disabled="currentSubject===total">下一题</i-button>
 				</div>
-				<div class="float_menu icon-item" @click="openModal">
-					<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
-				</div>
-
-				<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
-				@cancel="handleClose" i-class="action_sheets">
-					<view slot="header" style="margin: 16px">
-						<div style="background: red">
-							<span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject,'blue':item==='blue','red':item==='red'}" :key="index" v-for="(item,index) in totalArr" 
-							@click="selectHandle(index)">
-								<span>{{index+1}}</span>
-							</span>
-						</div>
-					</view>
-				</i-action-sheet>
-
 			</div>
 		</scroll-view>
+
+		<div class="float_menu icon-item" @click="openModal">
+			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
+		</div>
+
+		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
+		@cancel="handleClose" i-class="action_sheets">
+			<view slot="header" style="margin: 16px">
+				<div style="background: red">
+					<span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject,'blue':item==='blue','red':item==='red'}" :key="index" v-for="(item,index) in totalArr" 
+					@click="selectHandle(index)">
+						<span>{{index+1}}</span>
+					</span>
+				</div>
+			</view>
+		</i-action-sheet>
     </div>
 </template>
 <script>
@@ -98,25 +98,29 @@ import { formatTime } from '../../utils/common.js'
 			}
 		},
 		onLoad() {
-			const that = this
-			//  '/errorQuestion/getErrorQuestion'
-			this.$ajax({url: `/favorite/getFavorite?pageSize=${this.pageSize}&pageNum=${this.pageNum}`, method: 'GET'}, function(res) {
-				that.totalQuestion = res.result.list
-				// that.totalQuestion = [{"code":"19ZJ8779271","question":"桥式起重机运行轨道两条钢轨中心线之间的距离称为起重机轨距。","styleCode":"S00000000000000000003","score":0,"isDoIt":0,"rightAnswerList":["A"],"answerList":[],"answerMapList":[{"value":"正确","key":"A"},{"value":"错误","key":"B"}],"imageList":[]},{"code":"50ZJ8458559","question":"如图所示,该图标表示什么？","styleCode":"S00000000000000000003","score":0,"isDoIt":0,"rightAnswerList":["C"],"answerList":[],"answerMapList":[{"value":"散装物捆扎不牢不吊","key":"A"},{"value":"锋利边缘无保护不吊","key":"B"},{"value":"歪拉斜吊不吊","key":"C"},{"value":"物体上有人不吊","key":"D"}],"imageList":[]}]
-				that.currentQuestion = that.totalQuestion[0]
-				that.total = that.totalQuestion.length
-				that.totalArr = new Array(that.total).fill('1')
-				that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
-			})
+			this.getQuestions()
 		},
 		onShow() {
 		    wx.setNavigationBarTitle({title: '我的收藏'})
 		},
 		methods: {
+			getQuestions() {
+				const that = this
+				this.$ajax({url: `/favorite/getFavorite?pageSize=${this.pageSize}&pageNum=${this.pageNum}`, method: 'GET'}, function(res) {
+					that.totalQuestion = res.result.list
+					that.currentQuestion = that.totalQuestion[Math.abs(that.currentSubject%10-1)]
+					that.total = res.result.total
+					that.pageSize = res.result.pageSize
+					that.pageNum = res.result.pageNum
+					that.totalArr = new Array(that.total).fill('1')
+					that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				})
+			},
 			handleChange(e) {
 				this.tabActive = e.mp.detail.key
 			},
 			jumpHandle(value) {
+				const that = this
 				this.answerArr = []
 				if(value === 'prev') {
 					if(this.currentSubject===1){
@@ -129,9 +133,14 @@ import { formatTime } from '../../utils/common.js'
 					}
 					this.currentSubject ++
 				}
-				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
-				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
-				// console.log(this.questionStyle,9999)
+				//判断请求题
+				if(this.currentSubject-(this.pageSize*this.pageNum)>=1 || this.currentSubject-(this.pageSize*this.pageNum)<=-10) {
+					this.pageNum = Math.ceil(this.currentSubject/this.pageSize)
+					this.getQuestions()
+				} else {
+					this.currentQuestion = this.totalQuestion[Math.abs(that.currentSubject%10-1)]
+				  this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				}
 			},
 			openModal() {
 				this.visible = true
@@ -140,9 +149,16 @@ import { formatTime } from '../../utils/common.js'
 				this.visible = false
 			},
 			selectHandle(index) {
+				const that = this
 				this.currentSubject = index+1
-				this.currentQuestion = this.totalQuestion[index]
-				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				//判断请求题
+				if(this.currentSubject-(this.pageSize*this.pageNum)>=1 || this.currentSubject-(this.pageSize*this.pageNum)<=-10) {
+					this.pageNum = Math.ceil(this.currentSubject/this.pageSize)
+					this.getQuestions()
+				} else {
+					this.currentQuestion = this.totalQuestion[Math.abs(that.currentSubject%10-1)]
+				  this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				}
 				this.visible = false
 			},
 			selectAnswer(index, item) {

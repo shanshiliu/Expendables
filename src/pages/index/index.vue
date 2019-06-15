@@ -14,13 +14,19 @@
       <div class="industry clearfix">
         <span>当前工种：</span>
         <i class="iconfont icon-youxuanze fr" style="color:#666;font-size:18px"></i>&nbsp;&nbsp;
-        <span class="fr">
-            <view class="section login-inp" @click="getIndustry">
-							<picker @change="bindPickerChange($event)" :value="indexSch" :range-key="'styleName'" :range="arraySch">
-								<view class="picker">{{selectSch.styleName?selectSch.styleName:'请选择'}}</view>
-							</picker>
-						</view>
-          </span>
+        <!-- <span class="fr" v-if="selectSch.styleName">
+          <view class="section login-inp">
+            <picker @change="bindPickerChange($event)" :value="indexSch" :range-key="'styleName'" :range="arraySch">
+              <view class="picker">{{selectSch.styleName}}444</view>
+            </picker>
+          </view>
+        </span> -->
+        <span class="fr" v-if="selectSch.styleName">
+          <span @click="$openWin('/pages/citySelect/main?id=1')">{{selectSch.styleName}}</span>
+        </span>
+        <span class="fr" v-else>
+          <span @click="getIndustry">请选择</span>
+        </span>
       </div>
       <div class="clearfix">
         <div class="main_tab" :key="String(key)" v-for="(idx, key) in iconMain">
@@ -39,7 +45,7 @@
         <div
           :class="{'icon-item':true,'ub-box':true,'ub-col':true, 'ub-ver':true,vip_icon: idx.title==='全真题库'}"
           :key="String(key)" v-for="(idx, key) in iconMap" @click.stop="handleJump(idx.url)">
-          <div>
+          <div class="mr8">
             <dd class="icon ub-box ub-ver iconfont" :class="key" :style="{background: iconMap[key]['bk']}"></dd>
             <span class="z-padding-v-8-px z-font-size-12 z-color-333">{{iconMap[key]['title']}}</span>
           </div>
@@ -58,9 +64,9 @@
     data () {
       return {
         imgUrls: [
-          'http://bpic.588ku.com//back_origin_min_pic/19/04/16/a8bc3098ae9dd84ae7645a8cffc12486.jpg',
-          'http://p0.meituan.net/codeman/a97baf515235f4c5a2b1323a741e577185048.jpg',
-          'http://p0.meituan.net/codeman/daa73310c9e57454dc97f0146640fd9f69772.jpg'
+          '../../../../../static/images/img1.jpg',
+          '../../../../../static/images/img2.png',
+          '../../../../../static/images/img3.jpg'
         ],
         iconMain: {
           'icon-tiku': {title: '全真题库', bk: '#4facfe', url: '/pages/Exercise/main'},
@@ -79,53 +85,60 @@
         arraySch: [],
         indexSch: 1,
         selectSch: {},
+        activeId: 2,
       }
     },
     computed: {
       isLogin() {
         return this.accountInfo.token ? true : false
       },
-      // accountInfo() {
-      //   return this.$store.state.accountInfo
-      // }
     },
-    onLoad() {
+    onShow() {
+      this.activeId = wx.getStorageSync('workId') || 1
       this.accountInfo = wx.getStorageSync('accountInfo')
-      //我的工种
-      const that = this
-      this.$ajax({url: '/chooseStyle/getChooseStyle'}, function(res) {
-        if (res.status === 'success') {
-          res.result.map((item,i) => {
-          if(item.currentUse === 1) {
-              that.selectSch = item
-              that.indexSch = i
-            }
-          })
-          that.arraySch = res.result
-        }
-      })
+      this.selectSch = wx.getStorageSync('work')
     },
     onTabItemTap(e) {
-      this.accountInfo = wx.getStorageSync('accountInfo')
-      //我的工种
-      const that = this
-      this.$ajax({url: '/chooseStyle/getChooseStyle'}, function(res) {
-        if (res.status === 'success') {
-          res.result.map((item,i) => {
-          if(item.currentUse === 1) {
-              that.selectSch = item
-              that.indexSch = i
-            }
-          })
-          that.arraySch = res.result
-        }
-      })
     },
     methods: {
+      getIndustry() {
+        const that = this
+        wx.showModal({
+          title: '提示',
+          content: '您的当前账户下无工种，是否去选择工种',
+          success (res) {
+            if (res.confirm) {
+              that.$openWin('/pages/citySelect/main?id=2')
+            } else if (res.cancel) {
+              console.log('用户点击取消')
+            }
+          }
+        })
+      },
       bindPickerChange(e) {
+        console.log(9999999999999999)
+        const that = this
+        this.$ajax({url: '/chooseStyle/getChooseStyle'}, function(res) {
+          if (res.status === 'success') {
+            res.result.map((item,i) => {
+            if(item.currentUse === 1) {
+                that.selectSch = item
+                that.indexSch = i
+              }
+            })
+            that.arraySch = res.result
+          }
+        })
 				console.log('picker发送选择改变，携带值为', e.mp.detail.value)
 				this.indexSch = e.mp.detail.value
-				this.selectSch =  this.arraySch[this.indexSch]
+        const temp =  this.arraySch[this.indexSch] 
+        // 切换工种
+        // const that = this
+        that.$ajax({url: '/chooseStyle/useingStyle', method: 'POST', data: temp}, function(res) {
+          if (res.status === 'success') {
+            that.selectSch = temp
+          }
+        })
 			},
       handleJump(url) {
         if (!this.isLogin) {
@@ -136,19 +149,25 @@
           })
           return
         }
+        const that = this
         if(url === '/pages/Exercise/main') {
-          console.log(this.accountInfo.isActiveCard)
           if (this.accountInfo.isActiveCard === 2 || !this.accountInfo.isActiveCard) {
-            wx.showToast({
-              title: '您还没有做题权限，请激活卡密',
-              icon: 'none',
-              duration: 2000
+            wx.showModal({
+              title: '提示',
+              content: '您还没有做题权限，是否去激活卡密',
+              success (res) {
+                if (res.confirm) {
+                  that.$openWin('/pages/account/main')
+                } else if (res.cancel) {
+                  console.log('用户点击取消')
+                }
+              }
             })
             return
           }
         }
         if(url === '/pages/exam/main') {
-          if (!this.accountInfo.styleCode) {
+          if (!this.selectSch.styleCode) {
             wx.showToast({
               title: '请先选择工种',
               icon: 'none',
@@ -164,11 +183,31 @@
             })
             return
           }
-        }  
+        }
+        // 是否重新做题
+        if(url === '/pages/Exercise/main' && this.activeId != 1) {
+          wx.showModal({
+            title: '提示',
+            content: '是否继续做题',
+            cancelText: '重新做题',
+            confirmText: '继续做题',
+            success (res) {
+              if (res.confirm) {
+                that.$openWin('/pages/Exercise/main?id=' + that.activeId)
+              } else if (res.cancel) {
+                console.log('用户点击取消')
+                that.$ajax({url: '/questionWare/refreshQuestionWare', method:'POST'}, function(res) {
+                  if (res.status === 'success') {
+                    that.$openWin('/pages/Exercise/main')
+                  }
+                })
+              }
+            }
+          })
+          return
+        }
         this.$openWin(url)
       },
-    },
-    mounted() {
     }
   }
 </script>
@@ -190,18 +229,21 @@
     line-height: 30px;
   }
   .swiper{
-    height: 120px;
+    height: 164px;
     width: calc(100%);
     border-radius:25px;
     overflow:hidden;
     padding:5px;
+  }
+  .mr8 {
+    margin-top: 8%;
   }
   .main_tab {
     width: 50%;
     /* height: 150px; */
     float: left;
     background-color: #fff;
-    margin-top: 10px;
+    margin-top: 6%;
   }
   .icon-item {
     width:calc(33% - 20px);

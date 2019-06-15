@@ -9,13 +9,7 @@
 					<div class="login-inp"><label>姓名</label><input v-model="name" placeholder="请输入真实姓名"></div>
 					<div class="login-inp"><label>卡号</label><input v-model="cardNumber" type="digit" placeholder="请输入卡号"></div>
 					<div class="login-inp"><label>密码</label><input v-model="password" type="password" placeholder="请输入密码"></div>
-					<div>
-						<view class="section login-inp">
-							<picker @change="bindPickerChange($event)" :value="indexSch" :range="arraySch">
-								<view class="picker">学校  {{selectSch}}</view>
-							</picker>
-						</view>
-					</div>
+					<div class="login-inp"><label>学校</label><input v-model="selectSch" placeholder="请输入学校"></div>
 					<div>
 						<view class="section login-inp">
 							<!-- <view class="section__title">多列选择器</view> -->
@@ -61,7 +55,6 @@ import {formatTime} from '../../utils/common.js'
 						color: '#2d8cf0',
 					}
 				],
-				arraySch: ['美国', '中国', '巴西', '日本'],
 				indexSch: 1,
 				current: '',
 				multiArray: [[{}],[{}],[{}]],
@@ -132,28 +125,6 @@ import {formatTime} from '../../utils/common.js'
 				//   indexSch: e.mp.detail.value
 				// })
 			},
-			changeName(e) {
-				console.log(e.target.detail.value)
-				console.log(this.value1)
-			},
-			countDown() {
-				if (this.showBtn) {
-					return
-				}
-				this.showBtn = true;
-				// console.log(88888888)
-				this.content = this.totalTime + 's后重新发送' //这里解决60秒不见了的问题
-				let clock = setInterval(() => {
-				this.totalTime--
-				this.content = this.totalTime + 's后重新发送'
-				if (this.totalTime < 0) {     //当倒计时小于0时清除定时器
-					clearInterval(clock)
-					this.content = '发送验证码'
-					this.totalTime = 60
-					this.showBtn = false
-					}
-				},1000)
-			},
 			submitForm() {
 				if (!this.name) {
 					this.errorTxt = '请输入姓名'
@@ -180,24 +151,45 @@ import {formatTime} from '../../utils/common.js'
 					cardCode: this.cardNumber,
 					cardPassword: this.password,
 					realName:  this.name,
-					schoolCode: 'O00001',
+					schoolName: this.selectSch,
 					styleCode: this.selectWork.styleCode,
 				}
-				this.$ajax({url: '/wxUser/activeCard', method: 'POST', data: data}, function(res) {
-					if (res.status === 'success') {
+				const that = this
+				wx.showModal({
+				title: '提示',
+				content: '工种一旦绑定不可更改，是否确定？',
+				success (res) {
+					if (res.confirm) {
+					    that.$ajax({url: '/wxUser/activeCard', method: 'POST', data: data}, function(res) {
+							if (res.status === 'success') {
+								that.updateUserInfo()
+							} else if (res.status === 'error') {
+								wx.showToast({
+									title: res.error.reason,
+									icon: 'none',
+									duration: 2000
+								})
+							}
+						})
+					} else if (res.cancel) {
+						console.log('用户点击取消')
+					}
+				}
+				})
+			},
+			updateUserInfo() {
+				const that = this
+				this.$ajax({url: '/wxUser/getUserInfo  ', method: 'GET'}, function(res) {
+					if(res.status === 'success') {
+						wx.setStorageSync('accountInfo', res.result)
+						wx.setStorageSync('work', res.result.work)
 						wx.showToast({
 							title: '卡密激活成功',
 							icon: 'success',
 							duration: 2000
 						})
-					} else if (res.status === 'error') {
-						wx.showToast({
-							title: res.error.reason,
-							icon: 'none',
-							duration: 2000
-						})
+						that.$reLaunch('/pages/index/main')
 					}
-					
 				})
 			},
 			handleOk(index) {

@@ -2,13 +2,14 @@
   <div class="container ub-box ub-col">
     <dl class="ub-box z-padding-all-10-px" style="background:#fff">
       <dd :class="{'ub-box':true, 'ub-ver':true, 'img_l':true, 'vip_item':isLogin===true}">
-         <image :src="userInfo.avatarUrl" class="head-img" mode="aspectFill" v-if="isLogin===true"></image>
+         <image src="../../../../../static/images/icon.jpg" class="head-img" mode="aspectFill" v-if="isLogin===true"></image>
       </dd>
       <dd class="ub-flex-1 z-font-size-18 z-color-333 ub-box ub-ver-v z-padding-h-10-px">
-        <button v-if="isLogin===false" class="loginBtn" lang="zh_CN" open-type="getUserInfo" @getuserinfo="onGetUserInfo">登录</button>
+        <!-- <button v-if="isLogin===false" class="loginBtn" lang="zh_CN" open-type="getUserInfo" @getuserinfo="onGetUserInfo">登录</button> -->
+        <button v-if="isLogin===false" class="loginBtn" @getphonenumber="getPhoneNumber" open-type="getPhoneNumber">登录</button>
         <ul v-if="isLogin===true" class="ub-box z-margin-left-10-px ub-col">
-          <li class="z-font-size-16 z-color-333 z-margin-bottom-5-px">{{userInfo.nickName}}</li>
-          <li class="z-font-size-14 z-color-888">累计学习时长：1小时23分</li>
+          <li class="z-font-size-16 z-color-333 z-margin-bottom-5-px">{{userInfo.phone}}</li>
+          <li class="z-font-size-14 z-color-888" v-if="userInfo.useingEndTime">到期时间：{{userInfo.useingEndTime}}</li>
           <!-- <li class="z-font-size-14 z-color-888">{{userInfo.province}} {{userInfo.city}} {{userInfo.gender}}</li> -->
         </ul>
       </dd>
@@ -78,6 +79,7 @@ export default {
       return this.accountInfo.token ? true : false
     },
     userInfo () {
+      console.log(this.accountInfo)
       return this.accountInfo
     },
   },
@@ -86,13 +88,85 @@ export default {
       visible: false,
       accountInfo: {},
       isApple: false,
+      sessionKey: ''
     }
   },
-  onLoad() {
+  onload() {
+    // 微信登录
+    const that = this
+    const token = wx.getStorageSync('token') || ''
+    if (!token) {
+      wx.login({
+        success(res) {
+          if (res.code) {
+            // 后台登录获取token
+            console.log(res.code)
+            wx.setStorageSync('code', res.code)
+            that.$ajax({url: `/wxUser/wxLogin/${res.code}`, method: 'POST'},function(res) {
+              if (res.status === 'success') {
+                // 登录成功
+                wx.setStorageSync('sessionId', res.result)
+              } else {
+                wx.showToast({
+									title: '获取登录异常',
+									icon: 'none',
+									duration: 2000
+								})
+              }
+            })
+          } else {
+            console.log('登录失败！' + res.errMsg)
+            wx.showToast({
+              title: '请退出小程序重新登录',
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        }
+      })
+    }
+  },
+  onShow() {
     this.accountInfo = wx.getStorageSync('accountInfo')
     this.isApple = wx.getStorageSync('isApple')
   },
   methods: {
+    getPhoneNumber: function (e) {
+      const that = this
+      console.log(e.mp.detail)
+      if (e.mp.detail.errMsg !== 'getPhoneNumber:ok') {
+        wx.showModal({
+        title: '提示',
+        showCancel:false,
+        content: '未授权',
+        success:function(res) {
+          that.$backBeaforWin()
+        }
+        })
+      }else {
+          that.$ajax({
+          url: '/wxUser/wxLoginChecked',
+          data: {
+            //7微信 8普通 6卡密
+            "userMobile": "15721305936",
+            "password": "123",
+            "userOpenid": "1",
+            sessionId: wx.getStorageSync('sessionId'),
+            iv: e.mp.detail.iv,
+            encryptedData: e.mp.detail.encryptedData
+          },
+          method: 'POST'
+          }, function(res) {
+            if (res.status === 'success') {
+              const info = res.result
+								wx.setStorageSync('token',res.result.token)
+								wx.setStorageSync('accountInfo', info)
+                wx.setStorageSync('work', res.result.work)
+                that.accountInfo = info
+            }
+          })
+      }
+		},
     onGetUserInfo (e) {
       //登录授权
       const that = this
@@ -107,21 +181,17 @@ export default {
       info['iv'] = e.mp.detail.iv
       info['signature'] = e.mp.detail.signature
       info['rawData'] = e.mp.detail.rawData
-      wx.login({
-        success(res) {
-          if (res.code) {
-            // 发起网络请求
-            const data = e.mp.detail.userInfo
-            info['code'] = res.code
+      // info['sessionId'] = that.sessionKey
             //请求后台登录
             that.$ajax({
-              url: '/wxUser/loginChecked',
+              url: '/wxUser/wxLoginChecked',
               data: {
                 //7微信 8普通 6卡密
                 "userMobile": "15721305936",
                 "password": "123",
                 "userOpenid": "1",
-                userInfo: data,
+                userInfo: info,
+                sessionId: that.sessionKey
               },
               method: 'POST'
             }, function(res) {
@@ -130,13 +200,14 @@ export default {
                 wx.setStorageSync('token',res.result.token)
                 wx.setStorageSync('accountInfo', info)
                 that.accountInfo = info
+              } else {
+                wx.showToast({
+									title: '获取登录异常',
+									icon: 'none',
+									duration: 2000
+								})
               }
             })
-          } else {
-            console.log('登录失败！' + res.errMsg)
-          }
-        }
-      })
     },
     handleJump(url) {
       if (!this.isLogin) {

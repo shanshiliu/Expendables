@@ -1,29 +1,18 @@
 <template>
     <div class="mes_box">
-        <div class="one_mes">
-			<div class="mine">
-				阿色发色发呃沙发色发色发阿尔色粉爱上法恩莎啊啊色发色发
-			</div>	
-			<div class="you">
-				燃烧法是否萨尔阿尔法色法色发色
+		<scroll-view scroll-y scroll-top="0" class="scroll_box">
+			<div v-if="infoList.length===0" class="no_mes">暂无留言反馈</div>
+			<div class="one_mes" v-for="(item,i) in infoList" :key="i">
+				<div class="mine">
+					留言：{{item.feedBackMsg}}
+					<div>{{item.feedBackTime}}</div>
+				</div>
+				<div class="you" v-if="item.revortMsg">
+					回复：{{item.revortMsg}}
+					<div>{{item.revortTime}}</div>
+				</div>
 			</div>
-		</div>
-		<div class="one_mes">
-			<div class="mine">
-				阿色发色发呃沙发色发色发阿尔色粉爱上法恩莎啊啊色发色发
-			</div>	
-			<div class="you">
-				燃烧法是否萨尔阿尔法色法色发色
-			</div>
-		</div>
-		<div class="one_mes">
-			<div class="mine">
-				阿色发色发呃沙发色发色发阿尔色粉爱上法恩莎啊啊色发色发
-			</div>	
-			<div class="you">
-				燃烧法是否萨尔阿尔法色法色发色
-			</div>
-		</div>
+		</scroll-view>
     </div>
 </template>
 <script>
@@ -31,10 +20,15 @@
 	  	data () {
 			return {
 				value: '',
+				infoList: [],
 			}
 		},
 		onShow() {
+			const that = this
 			wx.setNavigationBarTitle({title: '留言反馈'})
+			this.$ajax({url: '/msg/getReportMsg', method: 'get'}, function(res) {
+				that.infoList = res.result
+			})
 		},
 		mounted() {
 			this.value = ''
@@ -57,7 +51,7 @@
 		background: #e8e8e8;
 		padding: 20px 0px;
 		width: calc(100% -40px);
-		height: 100%;
+		height:calc(100% - 50px);
 	}
 	.one_mes {
 		margin-bottom: 20px;
@@ -73,5 +67,16 @@
 	.you {
 		font-size:14px;
 		color:#888;
+	}
+	.mine div {
+		text-align: right;
+		font-size: 12px;
+	}
+	.you div {
+		text-align: right;
+		font-size: 12px;
+	}
+	.no_mes {
+		text-align: center;
 	}
 </style>

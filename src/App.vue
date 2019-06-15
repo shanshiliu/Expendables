@@ -6,24 +6,14 @@ export default {
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
     console.log('app created and cache logs by setStorageSync')
-    //小程序登陆
+    //小程序用户授权
     const that = this
-    // wx.getSetting({
-    //   success(res) {
-    //     console.log(res)
-    //     if (res.authSetting['scope.userInfo']) {
-    //       wx.getUserInfo({
-    //         success: function(res) {
-    //           that.$store.commit('updateUser', res.userInfo)
-    //           that.$store.commit('updateLogin', true)
-    //           console.log('用户已经授权过')
-    //         }
-    //       })
-    //     }else{
-    //       console.log('用户还未授权过')
-    //     }
-    //   }
-    // })
+    // 微信登录
+    const token = wx.getStorageSync('token') || ''
+    if (!token) {
+      that.$openWin('/pages/info/main')
+    }
+    // 是否为苹果用户
     const systemInfo =  wx.getSystemInfoSync()
     console.log(systemInfo)
     let isApple
@@ -33,6 +23,12 @@ export default {
       isApple = false
     }
     wx.setStorageSync('isApple', isApple)
+  },
+  onHide() {
+    const logs = wx.getStorageSync('logs') || []
+    logs.unshift(Date.now())
+    wx.setStorageSync('logs', logs)
+    console.log('app hide and cache logs by setStorageSync')
   }
 }
 </script>

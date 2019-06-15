@@ -17,7 +17,7 @@
 				 :key="index" v-for="(item,index) in currentQuestion.answerMapList" @click="selectAnswer(index,item)">
 				 <span class="inline_icon"><i :class="{'iconfont':true,'icon-xuanze':true,
 					'icon-unif060':item.status==='error','icon-ShapeCopy':item.status==='correct','icon-xuanzhong':item.status==='select'}"
-					style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}.{{item.value}}
+					style="color:#2d8cf0;font-size:20px"></i></span>{{item.key}}.<span class="answer_l" v-html="item.value"></span>
 				</div>
 			</div>
 		</div>
@@ -32,22 +32,11 @@
 				></i-count-down>
 			</view>
 		</div>
-		<!-- <div v-if="questionStyle==='多选'&&!currentQuestion.isSelect">
-			<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitHandle">提交</i-button>
-		</div> -->
-		<!-- <div v-if="currentQuestion.isSelect" :class="{'is_error':currentQuestion.isSelect===2,'is_right':currentQuestion.isSelect===1}">
-			<span v-if="currentQuestion.isSelect===1">您最对了！</span>
-			<span v-if="currentQuestion.isSelect===2">您做错了</span>
-			正确答案：<span v-for="(item,index) in currentQuestion.rightAnswerList" :key="String(index)">{{item}}</span>
-		</div> -->
 		<div class="box_bottom">
 			 <i-button i-class="btn_question" size="small" @click="jumpHandle('prev')" :disabled="currentSubject===1">上一题</i-button>
-			 <i-button i-class="btn_question" size="small" type="primary" @click="jumpHandle('next')" :disabled="currentSubject===total">下一题</i-button>
+			 <i-button i-class="btn_question" size="small" type="primary" @click="jumpHandle('next')" :disabled="currentSubject===totalArr.length">下一题</i-button>
 		</div>
-		<div class="float_menu icon-item" @click="openModal">
-			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
-		</div>
-
+		</scroll-view>
 		<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 		 @cancel="handleClose" i-class="action_sheets">
 			<view slot="header" style="margin: 16px">
@@ -74,7 +63,9 @@
 				<div>是否前往考试记录查看</div>
 			</div>
 		</i-modal>
-		</scroll-view>
+		<div class="float_menu icon-item" @click="openModal">
+			<dd class="icon ub-box ub-ver iconfont icon-menu-two"></dd>
+		</div>
     </div>
 </template>
 <script>
@@ -114,25 +105,52 @@ import { formatTime } from '../../utils/common.js'
 			}
 		},
 		onLoad() {
+			this.currentSubject = 1
+			this.score = 0
 			const that = this
-			this.targetTime = new Date().getTime() + 5400000,
-			this.$ajax({url: '/question/exam', method: 'POST'}, function(res) {
-				that.totalQuestion = res.result
-				// that.totalQuestion = [{"code":"19ZJ8779271","question":"桥式起重机运行轨道两条钢轨中心线之间的距离称为起重机轨距。","styleCode":"S00000000000000000003","score":0,"isDoIt":0,"rightAnswerList":["A"],"answerList":[],"answerMapList":[{"value":"正确","key":"A"},{"value":"错误","key":"B"}],"imageList":[]},{"code":"50ZJ8458559","question":"如图所示,该图标表示什么？","styleCode":"S00000000000000000003","score":0,"isDoIt":0,"rightAnswerList":["C"],"answerList":[],"answerMapList":[{"value":"散装物捆扎不牢不吊","key":"A"},{"value":"锋利边缘无保护不吊","key":"B"},{"value":"歪拉斜吊不吊","key":"C"},{"value":"物体上有人不吊","key":"D"}],"imageList":[]}]
-				that.currentQuestion = that.totalQuestion[0]
-				that.total = that.totalQuestion.length
-				that.totalArr = new Array(that.total).fill('1')
-				console.log(that.totalArr)
-				that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
-			})
-		},
-		mounted() {
 			this.currentDate = formatTime(new Date())
+			this.targetTime = new Date().getTime() + 5400000
 		},
 		onShow() {
-		    wx.setNavigationBarTitle({title: '模拟考试'})
+			const that = this
+			wx.setNavigationBarTitle({title: '模拟考试'})
+			wx.showModal({
+              title: '提示',
+              content: '全真模拟考试，一旦开始中途不可退出，退出作废',
+              success (res) {
+                if (res.confirm) {
+                  that.getQuestions()
+                } else if (res.cancel) {
+                  	wx.navigateBack({
+						delta: 1
+				  	})
+                }
+              }
+            })
+			
 		},
 		methods: {
+			getQuestions() {
+				const that = this
+				this.$ajax({url: '/question/exam', method: 'POST'}, function(res) {
+					if(res.status === 'success') {
+						that.totalQuestion = res.result
+						that.currentQuestion = that.totalQuestion[0]
+						that.total = that.totalQuestion.length
+						that.totalArr = new Array(that.total).fill('1')
+						that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+					} else {
+						wx.showModal({
+							title: '提示',
+							showCancel:false,
+							content: res.error.reason,
+							success:function(res) {
+								that.getQuestions()
+							}
+						})
+					}
+				})
+			},
 			submitQ() {
 				this.visibleB = true
 			},
@@ -165,6 +183,7 @@ import { formatTime } from '../../utils/common.js'
 				this.$redirectTo('/pages/record/main')
 			},
 			handleBack() {
+				this.visibleC = false
 				this.$backBeaforWin()
 			},
 			handleChange(e) {
@@ -307,25 +326,25 @@ import { formatTime } from '../../utils/common.js'
 				console.log(this.submitAnswer)
 			}
 		},
-		onUnload() {
-			this.saveAnswer()
-			const that = this
-			this.submitAnswer.map(item => {
-				if(item.isRight) {
-					this.score ++
-				}
-			})
-			const data = {
-				score: this.score,
-				examEndTime: formatTime(new Date()),
-				questions: this.submitAnswer
-			}
-			this.$ajax({url: '/question/commitExam', method: 'POST' , data: data}, function(res) {
-				if(res.status === 'success') {
-					console.log('提交考试成功')
-				}
-			})
-		}
+		// onUnload() {
+		// 	this.saveAnswer()
+		// 	const that = this
+		// 	this.submitAnswer.map(item => {
+		// 		if(item.isRight) {
+		// 			this.score ++
+		// 		}
+		// 	})
+		// 	const data = {
+		// 		score: this.score,
+		// 		examEndTime: formatTime(new Date()),
+		// 		questions: this.submitAnswer
+		// 	}
+		// 	this.$ajax({url: '/question/commitExam', method: 'POST' , data: data}, function(res) {
+		// 		if(res.status === 'success') {
+		// 			console.log('提交考试成功')
+		// 		}
+		// 	})
+		// }
 	}
 </script>
 <style scoped>
@@ -378,9 +397,9 @@ import { formatTime } from '../../utils/common.js'
 		width: 30px;
 		height: 30px;
 		position: fixed;
-		right: 5px;
+		right: 130px;
 		border: 1px solid #2d8cf0;
-		bottom: 40px;
+		top: 25px;
 	}
 	#menu_modal  .i-modal-main {
 		width: 100%;

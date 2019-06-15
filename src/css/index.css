@@ -57,3 +57,11 @@
     width: 100% !important;
     height: 100% !important;
 }
+.buy ._i-modal .i-modal-body {
+    max-height: 700px !important;
+}
+
+/* 组件复用样式 */
+.answer_l {
+    display: inline-block;
+}
