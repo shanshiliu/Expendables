@@ -16,6 +16,16 @@
 			}
 		},
 		onLoad() {
+			// 是否为苹果用户
+			const systemInfo =  wx.getSystemInfoSync()
+			console.log(systemInfo)
+			let isApple
+			if(systemInfo.model.indexOf('iPhone') > -1) {
+			isApple = true
+			} else {
+			isApple = false
+			}
+			wx.setStorageSync('isApple', isApple)
 			// 微信登录
 			const that = this
 			const token = wx.getStorageSync('token') || ''
@@ -69,10 +79,6 @@
 						that.$ajax({
 						url: '/wxUser/wxLoginChecked',
 						data: {
-							//7微信 8普通 6卡密
-							"userMobile": "15721305936",
-							"password": "123",
-							"userOpenid": "1",
 							sessionId: wx.getStorageSync('sessionId'),
 							iv: e.mp.detail.iv,
 							encryptedData: e.mp.detail.encryptedData

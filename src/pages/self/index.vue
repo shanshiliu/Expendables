@@ -48,7 +48,7 @@
       <dd @click.stop="handleJump('/pages/citySelect/main?id=2')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-xuanzetubiao" style="color:#2d8cf0;font-size:20px"></i>
-        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">选择 (添加) 工种</span>
+        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">添加工种</span>
         </p>
         <p class="ub-box ub-ver">
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>

@@ -78,14 +78,16 @@ import {formatTime} from '../../utils/common.js'
 		},
 		mounted() {
 			const that = this
+			that.selectWork = {}
+			that.multiArray = [[{}],[{}],[{}]]
+			that.multiIndex = [0, 0, 0]
 			this.$ajax({url: '/wxUser/getStyle'}, function(res) {
 				const arr = []
 				const arr1 = res.result
-				const arr2 = res.result[0].workStyleChildArray
-				const arr3 = res.result[0].workStyleChildArray[0].styleArray
+				const arr2 = res.result[0].styleArray
+				const arr3 = res.result[0].styleArray[0].styleArray
 				arr.push(arr1,arr2,arr3)
 				that.multiArray = arr
-				console.log(that.multiArray[0][that.multiIndex[0]].styleName)
 			})
 		},
 		methods: {
@@ -99,11 +101,9 @@ import {formatTime} from '../../utils/common.js'
 				const value = e.mp.detail.value
 				console.log(value)
 				if (column === 0) {
-					console.log(this.multiArray[column][value])
 					this.multiIndex = [value,0,0]
-					this.multiArray[1] = this.multiArray[column][value].workStyleChildArray
+					this.multiArray[1] = this.multiArray[column][value].styleArray
 					this.multiArray[2] = this.multiArray[1][0].styleArray
-					console.log(this.multiArray[1])
 				} else if (column === 1) {
 					this.multiIndex = [this.multiIndex[0],value,0]
 					this.multiArray[2] = this.multiArray[column][value].styleArray
@@ -114,8 +114,6 @@ import {formatTime} from '../../utils/common.js'
 				this.multiArray = [this.multiArray[0],this.multiArray[1],this.multiArray[2]]
 				this.selectWork = this.multiArray[2][this.multiIndex[2]]
 				// const index = this.multiIndex[]
-				console.log(this.multiArray[2][this.multiIndex[2]])
-				
 			},
 			selectHandle(num) {
 				this.current = num
@@ -127,7 +125,6 @@ import {formatTime} from '../../utils/common.js'
 				} else {
 					this.text = '购买'
 					this.money = '5.00'
-					this.payExam()
 				}
 			},
 			payMoney() {
@@ -153,17 +150,21 @@ import {formatTime} from '../../utils/common.js'
 							'signType': 'MD5',
 							'paySign': res.result.paySign,
 							'success':function(res){
+								wx.setStorageSync('workId', 1)
 								that.orderSuccess({
 									orderId:data.nonceStr,
 									payType: 0,
 								})
 							},
 							'fail':function(res){
-								console.log(res);
 								console.log('fail');
 							},
 							'complete': function(res){
-								console.log(res);console.log('complete');
+								wx.setStorageSync('workId', 1)
+								that.orderSuccess({
+									orderId:data.nonceStr,
+									payType: 0,
+								})
 							}
 						})
 					}
@@ -197,11 +198,13 @@ import {formatTime} from '../../utils/common.js'
 								})
 							},
 							'fail':function(res){
-								console.log(res);
 								console.log('fail');
 							},
 							'complete': function(res){
-								console.log(res);console.log('complete');
+								that.orderSuccess({
+									orderId:data.nonceStr,
+									payType: 1,
+								})
 							}
 						})
 					}
@@ -229,10 +232,11 @@ import {formatTime} from '../../utils/common.js'
 				})
 			},
 			buyHandle() {
-				console.log(8888888888)
 				if(this.current === 2) {
 					this.visible = true
 					return
+				} else if(this.current === 3) {
+					this.payExam()
 				}
 			},
 			handleOk(index) {

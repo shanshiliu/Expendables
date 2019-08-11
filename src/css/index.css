@@ -43,6 +43,9 @@
  .scroll_100 {
     height:100%;     
 }
+.pad30 {
+    padding-left: 50px;
+}
 
 .jiao {
     width:80px !important;

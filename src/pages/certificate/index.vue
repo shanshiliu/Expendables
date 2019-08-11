@@ -23,7 +23,7 @@
         currView: '',
         cityList: [
           {url: "http://cx.saws.org.cn/", name: "安监局"},
-          {url: "https://www.cnse.gov.cn/", name: "质监局"},
+          {url: "http://www.cnse.gov.cn/", name: "质监局"},
         ],
       }
     },

@@ -10,9 +10,10 @@
 			</div>
 		</div>
 		<div class="subject">
-			<span class="icon_choose" v-if="questionStyle==='单选'">单选题</span>
-			<span class="icon_choose" v-if="questionStyle==='多选'">多选题</span>
-			<div class="title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<span class="icon_choose" v-if="currentQuestion.questionType===1">单选题</span>
+			<span class="icon_choose" v-if="currentQuestion.questionType===2">多选题</span>
+			<span class="icon_choose" v-if="currentQuestion.questionType===3">判断题</span>
+			<div class="title"><span class="pad30"></span>
 				{{currentQuestion.question}}
 			</div>
 			<div class="select_group">
@@ -44,7 +45,7 @@
 			<view slot="header" style="margin: 16px">
 				<!-- <view style="color: #444;font-size: 16px">确定吗？</view> -->
 				<div style="background: red">
-				    <span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject}" :key="index" v-for="(item,index) in totalArr" 
+				    <span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject,'blue':item===1,'red':item ===2}" :key="index" v-for="(item,index) in totalArr" 
 					@click="selectHandle(index)">
 						<span>{{index+1}}</span>
 					</span>
@@ -70,7 +71,6 @@ import { formatTime } from '../../utils/common.js'
 				currentQuestion: {},
 				showAnswer: false,
 				descText: '',
-				questionStyle: '单选',
 				answerArr: [],
 				rightAnswer: [],
 			}
@@ -82,8 +82,9 @@ import { formatTime } from '../../utils/common.js'
 				that.totalQuestion = res.result
 				that.currentQuestion = that.totalQuestion[0]
 				that.total = that.totalQuestion.length
-				that.totalArr = new Array(that.total)
-				that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				that.totalArr = res.result.map(item =>{
+					return item.isRight
+				})
 				that.changeStyle()
 			})
 		},
@@ -94,7 +95,7 @@ import { formatTime } from '../../utils/common.js'
 			changeStyle() {
 				// 改变样式
 				const that = this
-				if(that.questionStyle === '多选') {
+				if(that.currentQuestion.questionType === 2) {
 					that.currentQuestion.answerMapList = that.currentQuestion.answerMapList.map(subs => {
 						let str = that.currentQuestion.answer || that.currentQuestion.rightAnswerList.toString()
 						if (str.indexOf(subs.key)>-1) {
@@ -109,7 +110,7 @@ import { formatTime } from '../../utils/common.js'
 					} else {
 						that.descText = '您做错了！'
 					}
-				} else if(that.questionStyle === '单选') {
+				} else {
 					that.currentQuestion.answerMapList = that.currentQuestion.answerMapList.map(subs => {
 						if(!this.currentQuestion.answer) {
 						that.descText = '您未做此题！'
@@ -138,7 +139,6 @@ import { formatTime } from '../../utils/common.js'
 				this.currentSubject --
 				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
 				this.isSelect = false
-				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				this.changeStyle()
 			},
 			nextHandle() {
@@ -147,7 +147,6 @@ import { formatTime } from '../../utils/common.js'
 				}
 				this.currentSubject ++
 				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
-				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				this.isSelect = false
 				this.changeStyle()
 			},
@@ -160,35 +159,9 @@ import { formatTime } from '../../utils/common.js'
 			selectHandle(index) {
 				this.currentSubject = index+1
 				this.currentQuestion = this.totalQuestion[index]
+				this.isSelect = false
+				this.changeStyle()
 				this.visible = false
-			},
-			selectAnswer(index, params, item) {
-				if (this.isSelect) {
-					return false
-				}
-				//多选答案
-				if (params === '多选' && !this.currentQuestion[index].status) {
-					this.answerArr.push(this.currentQuestion[index].value)
-					this.currentQuestion[index].status = 'select'
-					return false
-				} else {
-					//单选答案
-					this.currentQuestion.answerList.map((item,index) => {
-						if (item.value === this.rightAnswer.toString()) {
-							item.status = 'correct'
-						} else if(index ===value && !item.answer) {
-							this.items[index].status = 'error'
-						}
-					})
-
-					if (this.currentQuestion.rightAnswerList.toString() === item) {
-						console.log()
-						this.currentQuestion[index].status = 'correct'
-					} else {
-						this.currentQuestion[index].status = 'error'
-					}
-				}
-				this.isSelect = true
 			},
 			collectionHandle() {
 				if (this.collectionIcon === 'collection') {
@@ -329,6 +302,16 @@ import { formatTime } from '../../utils/common.js'
 		position: absolute;
 		left: -2px;
 		top: -1px;
+	}
+	.blue span{
+		background-color: #2d8cf0;
+		border: 1px solid #2d8cf0 !important;
+		color:#fff !important;
+	}
+	.red span{
+		background-color: #e65757;
+		border: 1px solid #e65757 !important;
+		color:#fff !important;
 	}
 	.no_css {
 		color: #222;

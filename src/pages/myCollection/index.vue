@@ -11,14 +11,15 @@
 					<div>{{currentSubject}}/{{total}}
 						<span v-if="!currentQuestion.isFavorite" class="fr" @click="collectionHandle"><i-icon type="collection" 
 							size="24" color="#f9e409"/></span>
-							<span v-else class="fr" @click="collectionHandle"><i-icon type="collection_fill" 
+						<span v-else class="fr" @click="collectionHandle"><i-icon type="collection_fill" 
 							size="24" color="#f9e409"/></span>
 					</div>
 				</div>
 				<div class="subject">
-					<span class="icon_choose" v-if="questionStyle==='单选'">单选题</span>
-					<span class="icon_choose" v-if="questionStyle==='多选'">多选题</span>
-					<div class="title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<span class="icon_choose" v-if="currentQuestion.questionType===1">单选题</span>
+					<span class="icon_choose" v-if="currentQuestion.questionType===2">多选题</span>
+					<span class="icon_choose" v-if="currentQuestion.questionType===3">判断题</span>
+					<div class="title"><span class="pad30"></span>
 						{{currentQuestion.question}}
 					</div>
 					<div class="select_group" v-if="tabActive==='tab1'">
@@ -36,7 +37,7 @@
 						</div>
 					</div>
 				</div>
-				<div v-if="questionStyle==='多选'&&!currentQuestion.isSelect">
+				<div v-if="currentQuestion.questionType===2&&!currentQuestion.isSelect">
 					<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitHandle">提交</i-button>
 				</div>
 				<div v-if="tabActive==='tab1'">	
@@ -89,7 +90,6 @@ import { formatTime } from '../../utils/common.js'
 				totalQuestion: [],
 				currentQuestion: {},
 				showAnswer: false,
-				questionStyle: '单选',
 				answerArr: [],
 				rightAnswer: [],
 				submitAnswer:[],
@@ -98,13 +98,17 @@ import { formatTime } from '../../utils/common.js'
 			}
 		},
 		onLoad() {
-			this.getQuestions()
+			this.totalArr = []
+			this.totalQuestion = []
+			this.currentQuestion = {}
+			this.currentSubject = 1
+			this.getQuestions(1)
 		},
 		onShow() {
 		    wx.setNavigationBarTitle({title: '我的收藏'})
 		},
 		methods: {
-			getQuestions() {
+			getQuestions(init=0) {
 				const that = this
 				this.$ajax({url: `/favorite/getFavorite?pageSize=${this.pageSize}&pageNum=${this.pageNum}`, method: 'GET'}, function(res) {
 					that.totalQuestion = res.result.list
@@ -112,8 +116,9 @@ import { formatTime } from '../../utils/common.js'
 					that.total = res.result.total
 					that.pageSize = res.result.pageSize
 					that.pageNum = res.result.pageNum
-					that.totalArr = new Array(that.total).fill('1')
-					that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+					if (init) {
+						that.totalArr = new Array(that.total).fill('1')
+					}
 				})
 			},
 			handleChange(e) {
@@ -139,7 +144,6 @@ import { formatTime } from '../../utils/common.js'
 					this.getQuestions()
 				} else {
 					this.currentQuestion = this.totalQuestion[Math.abs(that.currentSubject%10-1)]
-				  this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				}
 			},
 			openModal() {
@@ -157,7 +161,6 @@ import { formatTime } from '../../utils/common.js'
 					this.getQuestions()
 				} else {
 					this.currentQuestion = this.totalQuestion[Math.abs(that.currentSubject%10-1)]
-				  this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				}
 				this.visible = false
 			},
@@ -166,7 +169,7 @@ import { formatTime } from '../../utils/common.js'
 					return false
 				}
 				//多选答案
-				if(this.questionStyle === '多选' && !this.currentQuestion.isSelect) {
+				if(this.currentQuestion.questionType === 2 && !this.currentQuestion.isSelect) {
 					if(item.status===undefined || item.status === '') {
 						item.status = 'select'
 						this.answerArr.push(item.key)
@@ -186,7 +189,6 @@ import { formatTime } from '../../utils/common.js'
 						item.status = 'correct'
 						this.currentQuestion.isSelect = 1
 					} else {
-						console.log(rightTemp)
 						this.currentQuestion.answerMapList.map(lis => {
 							if(lis.key === item.key) {
 								lis.status = 'error'
@@ -210,12 +212,11 @@ import { formatTime } from '../../utils/common.js'
 					// })
 				}
 				//做过样式
-				if(this.questionStyle === '单选') {
+				if(this.currentQuestion.questionType === 1 || this.currentQuestion.questionType === 3) {
 					this.totalArr[this.currentSubject-1] = this.currentQuestion.isSelect === 2 ? 'red' : 'blue'
 				}
 			},
 			submitHandle() {
-				console.log(this.answerArr)
 				if (this.answerArr.sort().toString() === this.currentQuestion.rightAnswerList.toString()) {
 					this.currentQuestion.isSelect = 1
 				} else {

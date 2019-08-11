@@ -6,13 +6,9 @@ export default {
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
     console.log('app created and cache logs by setStorageSync')
-    //小程序用户授权
+  },
+  onShow() {
     const that = this
-    // 微信登录
-    const token = wx.getStorageSync('token') || ''
-    if (!token) {
-      that.$openWin('/pages/info/main')
-    }
     // 是否为苹果用户
     const systemInfo =  wx.getSystemInfoSync()
     console.log(systemInfo)
@@ -23,6 +19,11 @@ export default {
       isApple = false
     }
     wx.setStorageSync('isApple', isApple)
+    // 微信是否登录
+    const token = wx.getStorageSync('token') || ''
+    if (!token) {
+      that.$openWin('/pages/info/main')
+    }
   },
   onHide() {
     const logs = wx.getStorageSync('logs') || []

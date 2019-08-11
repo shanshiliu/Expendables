@@ -65,13 +65,20 @@ import {formatTime} from '../../utils/common.js'
 				errorTxt: '',
 			}
 		},
-		mounted() {
+		onLoad() {
+			this.name = ''
+			this.cardNumber = ''
+			this.password = ''
+			this.selectSch = ''
+			this.selectWork = ''
+			// this.multiIndex = [0,0,0]
+			// this.multiArray = [[{}],[{}],[{}]]
 			const that = this
 			this.$ajax({url: '/wxUser/getStyle'}, function(res) {
 				const arr = []
 				const arr1 = res.result
-				const arr2 = res.result[0].workStyleChildArray
-				const arr3 = res.result[0].workStyleChildArray[0].styleArray
+				const arr2 = res.result[0].styleArray
+				const arr3 = res.result[0].styleArray[0].styleArray
 				arr.push(arr1,arr2,arr3)
 				that.multiArray = arr
 				console.log(that.multiArray[0][that.multiIndex[0]].styleName)
@@ -82,7 +89,7 @@ import {formatTime} from '../../utils/common.js'
 			console.log(this.targetTime)
 		},
 		onShow() {
-			wx.setNavigationBarTitle({title: '账号注册'})
+			wx.setNavigationBarTitle({title: '卡密激活'})
 		},
 		methods: {
 			bindMultiPickerChange(e) {
@@ -97,7 +104,7 @@ import {formatTime} from '../../utils/common.js'
 				if (column === 0) {
 					console.log(this.multiArray[column][value])
 					this.multiIndex = [value,0,0]
-					this.multiArray[1] = this.multiArray[column][value].workStyleChildArray
+					this.multiArray[1] = this.multiArray[column][value].styleArray
 					this.multiArray[2] = this.multiArray[1][0].styleArray
 					console.log(this.multiArray[1])
 				} else if (column === 1) {
@@ -188,6 +195,7 @@ import {formatTime} from '../../utils/common.js'
 							icon: 'success',
 							duration: 2000
 						})
+						wx.setStorageSync('workId', 1)
 						that.$reLaunch('/pages/index/main')
 					}
 				})

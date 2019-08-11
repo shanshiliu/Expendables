@@ -35,8 +35,14 @@
 				this.$ajax({url: '/msg/feedMsg', method: 'POST', data: {
 						message: that.value,
 					}}, function(res) {
-					console.log('成功')
-					that.$backBeaforWin()
+						wx.showToast({
+							title: '反馈成功，感谢您的使用！',
+							icon: 'none',
+							duration: 2000
+						})
+						setTimeout(function() {
+						   that.$backBeaforWin()
+						}, 2000)
 				})
 			}
 		}

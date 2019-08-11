@@ -9,6 +9,7 @@ import './css/index.css'
 import './css/iconfont.css'
 Vue.config.productionTip = false
 App.mpType = 'app'
+Vue.config._mpTrace = true
 
 // 把通用方法挂载到Vue原型上
 Vue.prototype.$openWin = openWin
@@ -50,6 +51,9 @@ export default {
       'pages/certificate/main',
       'pages/webview/main',
       'pages/message/main',
+      'pages/menuList/main',
+      'pages/schoolList/main',
+      'pages/schoolInfo/main',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -57,6 +61,11 @@ export default {
       navigationBarTitleText: '特易过',
       navigationBarTextStyle: 'white',
       // enablePullDownRefresh: true
+    },
+    "permission": {
+      "scope.userLocation": {
+        "desc": "定位可便于您获取附近学校"
+      }
     },
     tabBar: {
       borderStyle: 'black',

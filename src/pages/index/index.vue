@@ -1,10 +1,15 @@
 <template>
   <div class="container ub-box ub-col">
     <scroll-view scroll-y scroll-top="0" class="scroll_box">
+      <div class="address" v-if="currentCity">
+        <!-- 位置信息 -->
+        <div class="left_btn" @click="$openWin('/pages/schoolList/main?city='+currentCity+'&adcode='+adcode)">推荐好学校</div>
+        <div class="right_btn">当前城市：{{currentCity}}</div>
+      </div>
       <!--轮播图-->
       <div class="ub-box ub-ver">
         <swiper class="swiper" indicator-dots="false" autoplay="false" interval="5000" duration="500">
-          <block v-for="(item, idx) in imgUrls" :key="String(idx)">
+          <block v-for="(item, idx) in imgUrls" :key="String(idx)" >
             <swiper-item class="shadow">
               <image :src="item" class="z-width-100-percent" mode="widthFix"/>
             </swiper-item>
@@ -22,7 +27,7 @@
           </view>
         </span> -->
         <span class="fr" v-if="selectSch.styleName">
-          <span @click="$openWin('/pages/citySelect/main?id=1')">{{selectSch.styleName}}</span>
+          <span @click="$openWin('/pages/citySelect/main?id=1')" class="work_hidden">{{selectSch.styleName}}</span>
         </span>
         <span class="fr" v-else>
           <span @click="getIndustry">请选择</span>
@@ -55,6 +60,12 @@
   </div>
 </template>
 <script>
+
+import QQMapWX from '@/utils/qqmap-wx-jssdk.js'
+let qqmapsdk = new QQMapWX({
+  key: '3CPBZ-5LFW3-ASL34-Y2TA4-GZRVF-PZFLT'
+})
+
   export default {
     computed: {
       curCity () {
@@ -73,7 +84,7 @@
           'icon-monikaoshi': {title: '模拟考试', bk: '#03BE61', url: '/pages/exam/main'},
         },
         iconMap: {
-          'icon-zhiye1': {title: '选择工种', bk: '#EF8B3E', url: '/pages/citySelect/main?id=2'},
+          'icon-zhiye1': {title: '添加工种', bk: '#EF8B3E', url: '/pages/citySelect/main?id=2'},
           'icon-cuotiben': {title: '错  题  集', bk: '#EC5B6E', url: '/pages/wrongBook/main'},
           'icon-icon_kaoshijilu_normal': {title: '考试记录', bk: '#F3AE42', url: '/pages/record/main'},
           'icon-fav': {title: '我的收藏', bk: '#5DC1A9', url: '/pages/myCollection/main'},
@@ -86,12 +97,32 @@
         indexSch: 1,
         selectSch: {},
         activeId: 2,
+        currentCity: '',
+        adcode: '',
       }
     },
     computed: {
       isLogin() {
         return this.accountInfo.token ? true : false
       },
+    },
+    onLoad() {
+      // 可以通过 wx.getSetting 先查询一下用户是否授权了 "scope.record" 这个 scope
+      const that = this
+      wx.getSetting({
+        success(res) {
+          if (!res.authSetting['scope.userLocation']) {
+            wx.authorize({
+              scope: 'scope.userLocation',
+              success () {
+                that.getSelfLocation()
+              }
+            })
+          } else {
+            that.getSelfLocation()
+          }
+        }
+      })
     },
     onShow() {
       this.activeId = wx.getStorageSync('workId') || 1
@@ -101,6 +132,37 @@
     onTabItemTap(e) {
     },
     methods: {
+      shareBtn() {
+        wx.showShareMenu({
+          withShareTicket: true
+        })
+      },
+      getSelfLocation() {
+        const that = this
+        wx.getLocation({
+          type: 'wgs84',
+          success (res) {
+            const latitude = res.latitude
+            const longitude = res.longitude
+            const speed = res.speed
+            const accuracy = res.accuracy
+            qqmapsdk.reverseGeocoder({
+              location: {
+                latitude: latitude,
+                longitude: longitude
+              },
+              success: function (res) {
+                console.log(res.result,88888888)
+                that.currentCity = res.result.address_component.city
+                that.adcode = res.result.ad_info.adcode
+              },
+              fail: function (res) {
+                console.log(res, 'fail')
+              }
+            })
+          }
+        })
+      },
       getIndustry() {
         const that = this
         wx.showModal({
@@ -116,7 +178,7 @@
         })
       },
       bindPickerChange(e) {
-        console.log(9999999999999999)
+        // console.log(9999999999999999)
         const that = this
         this.$ajax({url: '/chooseStyle/getChooseStyle'}, function(res) {
           if (res.status === 'success') {
@@ -151,7 +213,7 @@
         }
         const that = this
         if(url === '/pages/Exercise/main') {
-          if (this.accountInfo.isActiveCard === 2 || !this.accountInfo.isActiveCard) {
+          if (this.accountInfo.isActiveCard === 2) {
             wx.showModal({
               title: '提示',
               content: '您还没有做题权限，是否去激活卡密',
@@ -184,6 +246,10 @@
             return
           }
         }
+        if(url === '/pages/Exercise/main' && this.accountInfo.isChildMenu === 1) {
+          that.$openWin('/pages/menuList/main')
+          return
+        }
         // 是否重新做题
         if(url === '/pages/Exercise/main' && this.activeId != 1) {
           wx.showModal({
@@ -203,6 +269,56 @@
                 })
               }
             }
+          })
+          return
+        }
+        // 模拟考试
+        console.log(url)
+        if(url === '/pages/exam/main' && this.accountInfo.isChildMenu === 1) {
+            that.$ajax({url: '/wxUser/getExamNum', method:'GET'}, function(res) {
+              if (res.status === 'success') {
+                const num = res.result.num
+                const freeNum = res.result.endTime ? '' : '剩余免费考试次数' + res.result.num + ','
+                const tip = res.result.num == 0 ? '免费考试次数已用完' : freeNum + '全真模拟考试，一旦开始中途不可退出，退出作废'
+                 wx.showModal({
+                  title: '提示',
+                  content: tip ,
+                  success (res) {
+                    if (res.confirm) {
+                      if(num == 0) {
+                        return
+                      }
+                      that.$openWin('/pages/menuList/main?id=1')
+                    } else if (res.cancel) {
+                      // wx.navigateBack({
+                      //   delta: 1
+                      // })
+                    }
+                  }
+                })
+              }
+            })
+            return
+        } else if(url === '/pages/exam/main') {
+          that.$ajax({url: '/wxUser/getExamNum', method:'GET'}, function(res) {
+              if (res.status === 'success') {
+                const num = res.result.num
+                const freeNum = res.result.endTime ? '' : '剩余免费考试次数' + res.result.num + ','
+                const tip = res.result.num == 0 ? '免费考试次数已用完' : freeNum + '全真模拟考试，一旦开始中途不可退出，退出作废'
+                wx.showModal({
+                    title: '提示',
+                    content: tip,
+                    success (res) {
+                      if (res.confirm) {
+                        if(num == 0) {
+                          return
+                        }
+                        that.$openWin(url)
+                      } else if (res.cancel) {
+                      }
+                    }
+                })
+              }
           })
           return
         }
@@ -287,7 +403,15 @@
     position: absolute;
   }
   .shadow {
-    box-shadow:2px 2px 15px #333333;
+    /* box-shadow:2px 2px 15px #333333; */
+  }
+  .work_hidden {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    /* width: 60%; */
   }
   .sytle_font {
     color: #fff;
@@ -323,5 +447,25 @@
     .adaptive-circle .layout.middle div:first-child {
         display: inline-block;
         vertical-align: middle;
+    }
+    .address {
+      font-size: 14px;
+      color: #333333;
+      height: 30px;
+      display: flex;
+      line-height: 30px;
+      padding: 10px 20px;
+    }
+    .left_btn {
+      /* width: 70%; */
+      text-align: center;
+      flex: 2;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      margin-right: 20px;
+    }
+    .rigth_btn {
+      /* width: 30%; */
+      flex: 1;
     }
 </style>

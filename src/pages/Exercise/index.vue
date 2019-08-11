@@ -1,13 +1,13 @@
 <template>
     <div class="exam">
 		<scroll-view scroll-y scroll-top="0" class="scroll_100">
-			<div>
+			<div v-if="totalQuestion.length">
 				<i-tabs :current="tabActive" @change="handleChange($event)">
 					<i-tab key="tab1" title="答题模式"></i-tab>
 					<i-tab key="tab2" title="背题模式"></i-tab>
 				</i-tabs>
 				<div class="exam_header">
-					<div>{{currentSubject}}/{{totalArr.length}}
+					<div>{{currentTotal}}/{{total}}
 						<span v-if="!currentQuestion.isFavorite" class="fr" @click="collectionHandle"><i-icon type="collection" 
 							size="24" color="#f9e409"/></span>
 							<span v-else class="fr" @click="collectionHandle"><i-icon type="collection_fill" 
@@ -15,9 +15,10 @@
 					</div>
 				</div>
 				<div class="subject">
-					<span class="icon_choose" v-if="questionStyle==='单选'">单选题</span>
-					<span class="icon_choose" v-if="questionStyle==='多选'">多选题</span>
-					<div class="title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<span class="icon_choose" v-if="currentQuestion.questionType===1">单选题</span>
+					<span class="icon_choose" v-if="currentQuestion.questionType===2">多选题</span>
+					<span class="icon_choose" v-if="currentQuestion.questionType===3">判断题</span>
+					<div class="title"><span class="pad30"></span>
 						{{currentQuestion.question}}
 						<img :src="item" v-for="(item, i) in currentQuestion.imageList" :key="String(i)">
 					</div>
@@ -37,7 +38,7 @@
 					</div>
 				</div>
 				<div v-if="tabActive==='tab1'">
-					<div v-if="questionStyle==='多选'&&currentQuestion.isDoIt===2">
+					<div v-if="currentQuestion.questionType===2&&currentQuestion.isDoIt===2">
 						<i-button i-class="btn_question" size="small" shape="circle" type="primary" @click="submitHandle">提交</i-button>
 					</div>
 				</div>
@@ -65,12 +66,16 @@
 			<i-action-sheet :action="actions" :visible="visible" :show-cancel="false"
 			@cancel="handleClose" i-class="action_sheets">
 				<view slot="header" style="margin: 16px">
-					<div style="background: red">
+					<div class="page_style" @click="scrolltoupper">上一页</div>
+					<!-- <scroll-view scroll-y scroll-top="0" :style="{'height': '300px'}" @scrolltoupper="scrolltoupper" @scrolltolower="scrolltolower" @scroll="scroll"> -->
+					<div class="clearfix">
 						<span :class="{'select_box': (index+1)!==currentSubject,'current_box':(index+1)===currentSubject,'blue':styleArr[index]===1, 'red': styleArr[index]===0}" :key="index" v-for="(item,index) in totalArr" 
 						@click="selectHandle(index)">
-							<span>{{index+1}}</span>
+							<span>{{index+1+(pageNo-1)*pageLength}}</span>
 						</span>
 					</div>
+					<div class="page_bottom" @click="scrolltolower">下一页</div>
+					<!-- </scroll-view> -->
 				</view>
 			</i-action-sheet>
     </div>
@@ -84,54 +89,111 @@ import { formatTime } from '../../utils/common.js'
 				visible: false,
 				totalArr: [],
 				styleArr: [],
+				total: '',
 				tabActive: 'tab1',
 				actions: [],
 				totalQuestion: [],
 				currentQuestion: {
 					isDoIt: 1
 				},
-				showAnswer: false,
-				questionStyle: '多选',
 				answerArr: [],
 				rightAnswer: [],
-				submitAnswer:[],
 				currentCode: 0,
 				pageNum: 1,
 				pageSize:10,
-			}
-		},
-		watch: {
-			currentSubject(value) {
-				console.log(value)
+				pageNo:1,
+				pageLength:200,
+				childStyleCode: '',
+				currentTotal: 1,
 			}
 		},
 		onLoad(options) {
-			console.log(options.id)
-			this.currentSubject = options.id ? this.currentSubject : 1
+			this.pageNo = 1
+			this.totalArr = []
+			this.totalQuestion = []
+			this.currentQuestion = {}
+			this.childStyleCode = options.styleCode || ''
+			this.currentTotal = this.currentSubject = options.id ? this.currentSubject : 1
 			const that = this
-			this.$ajax({url: `/questionWare/getQuestionCodes`, method: 'GET'}, function(res) {
-				that.totalArr = res.result.codes
-				that.currentCode = that.totalArr[that.currentSubject-1]
-				that.styleArr = res.result.isRights
-				that.getQuestions()
+			this.$ajax({url: `/questionWare/getQuestionCodes?childStyleCode=${this.childStyleCode}&pageNum=${this.pageNo}&pageSize=${this.pageLength}`, method: 'GET'}, function(res) {
+				if(res.status === 'success') {
+					that.total = res.result.total
+					that.totalArr = res.result.codes
+					that.currentCode = that.totalArr[that.currentSubject-1]
+					that.styleArr = res.result.isRights
+					that.getQuestions()
+				} else {
+					wx.showToast({
+						title: res.error.reason,
+						icon: 'none',
+						duration: 2000
+					})
+				}
 			})
 		},
 		onShow() {
 			wx.setNavigationBarTitle({title: '全真题库'})
 		},
 		onUnload() {
-			console.log(9999)
 			wx.setStorageSync('workId', this.currentSubject)
 		},
 		methods: {
+			scrolltoupper() {
+				const that = this
+				if(that.pageNo <=1) {
+					return
+				}
+				that.pageNo --
+				this.$ajax({url: `/questionWare/getQuestionCodes?childStyleCode=${this.childStyleCode}&pageNum=${this.pageNo}&pageSize=${this.pageLength}`, method: 'GET'}, function(res) {
+					if(res.status === 'success') {
+						that.totalArr = res.result.codes
+						that.styleArr = res.result.isRights
+					} else {
+						wx.showToast({
+							title: res.error.reason,
+							icon: 'none',
+							duration: 2000
+						})
+					}
+				})
+			},
+			scrolltolower() {
+				const that = this
+				console.log(that.total)
+				if(that.pageNo*that.pageLength >= that.total) {
+					return
+				}
+				that.pageNo ++
+				this.$ajax({url: `/questionWare/getQuestionCodes?childStyleCode=${this.childStyleCode}&pageNum=${this.pageNo}&pageSize=${this.pageLength}`, method: 'GET'}, function(res) {
+					if(res.status === 'success') {
+						that.totalArr = res.result.codes
+						that.styleArr = res.result.isRights
+					} else {
+						wx.showToast({
+							title: res.error.reason,
+							icon: 'none',
+							duration: 2000
+						})
+					}
+				})
+			},
 			getQuestions() {
 				// 获取题
 				const that = this
 				const data = that.totalArr.slice(that.pageNum*that.pageSize-that.pageSize,that.pageNum*that.pageSize)
 				that.$ajax({url: `/questionWare/getQuestionWare`, method: 'POST', data: data}, function(res) {
+					if(res.error && res.error.code == 'DEV_BS_200014') {
+						wx.showToast({
+							title: res.error.reason,
+							icon: 'none',
+							duration: 2000
+						})
+						return
+					}
 					that.totalQuestion = res.result.list
-					that.currentQuestion = that.totalQuestion[Math.abs(that.currentSubject%10-1)]
-					that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+					that.currentQuestion = res.result.list[Math.abs(that.currentSubject%10-1)]
+					// that.currentQuestion.questionType = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+					that.changeStyle()
 					// that.totalQuestion = that.totalQuestion.concat(res.result.list)
 					// that.totalQuestion.map(item => {
 					// 	if (item.code === that.currentCode) {
@@ -144,19 +206,18 @@ import { formatTime } from '../../utils/common.js'
 					// })
 				})
 			},
-			changeStyle(item) {
+			changeStyle() {
 				// 做过改变样式
 				const that = this
-				if(that.questionStyle === '多选' && item.isDoIt != 2) {
+				if(that.currentQuestion.questionType === 2 && that.currentQuestion.isDoIt != 2) {
 					that.currentQuestion.answerMapList = that.currentQuestion.answerMapList.map(subs => {
 						let str = (that.currentQuestion.isDoIt === 1 ? that.currentQuestion.rightAnswerList.toString() : that.currentQuestion.errorAnswerList.toString())
 						if (str.indexOf(subs.key)>-1) {
 							subs['status'] = 'select'
 						}
-						console.log(str)
 						return subs
 					})
-				} else if(that.questionStyle === '单选' && item.isDoIt != 2) {
+				} else if((that.currentQuestion.questionType === 1||that.currentQuestion.questionType === 3) && that.currentQuestion.isDoIt != 2) {
 					that.currentQuestion.answerMapList = that.currentQuestion.answerMapList.map(subs => {
 						if (that.currentQuestion.rightAnswerList.toString() === subs.key) {
 							subs['status'] = 'correct'
@@ -179,11 +240,13 @@ import { formatTime } from '../../utils/common.js'
 						return
 					}
 					this.currentSubject --
+					this.currentTotal --
 				} else if(value === 'next') {
 					if(this.currentSubject===this.totalArr.length){
 						return
 					}
 					this.currentSubject ++
+					this.currentTotal ++
 				}
 				//判断请求题
 				if(this.currentSubject-(this.pageSize*this.pageNum)>=1 || this.currentSubject-(this.pageSize*this.pageNum)<=-10) {
@@ -191,7 +254,8 @@ import { formatTime } from '../../utils/common.js'
 					this.getQuestions()
 				} else {
 					this.currentQuestion = this.totalQuestion[Math.abs(that.currentSubject%10-1)]
-				  this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+					// this.currentQuestion.questionType = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+					that.changeStyle()
 				}
 			},
 			openModal() {
@@ -204,13 +268,14 @@ import { formatTime } from '../../utils/common.js'
 				const that = this
 				this.answerArr = []
 				this.currentSubject = index + 1
+				this.currentTotal = this.currentSubject+(this.pageNo-1)*this.pageLength
 				//判断请求题
-				if(this.currentSubject-(this.pageSize*this.pageNum)>=1 || this.currentSubject-(this.pageSize*this.pageNum)<=-10) {
+				if(this.currentSubject-(this.pageSize*this.pageNum)>=1 || this.currentSubject-(this.pageSize*this.pageNum)<=-2) {
 					this.pageNum = Math.ceil(this.currentSubject/this.pageSize)
 					this.getQuestions()
 				} else {
 					this.currentQuestion = this.totalQuestion[Math.abs(that.currentSubject%10-1)]
-				  this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				//   this.currentQuestion.questionType = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				}
 				this.visible = false
 			},
@@ -220,7 +285,7 @@ import { formatTime } from '../../utils/common.js'
 					return false
 				}
 				//多选答案
-				if(this.questionStyle === '多选' && this.currentQuestion.isDoIt === 2) {
+				if(this.currentQuestion.questionType === 2 && this.currentQuestion.isDoIt === 2) {
 					console.log(44444)
 					if(item.status===undefined || item.status === '') {
 						item.status = 'select'
@@ -233,7 +298,7 @@ import { formatTime } from '../../utils/common.js'
 						item.status = ''
 					}
 					this.$forceUpdate()
-				} else if (this.questionStyle === '单选' && this.currentQuestion.isDoIt === 2) {
+				} else if ((that.currentQuestion.questionType === 1||that.currentQuestion.questionType === 3) && this.currentQuestion.isDoIt === 2) {
 					//单选答案
 					that.answerArr = []
 					this.answerArr.push(item.key)
@@ -256,7 +321,8 @@ import { formatTime } from '../../utils/common.js'
 					const data  = {
 						code: this.currentQuestion.code,
 						answer: this.answerArr.join(','),
-						isRight: this.currentQuestion.isDoIt === 1 ? 1 : 2
+						isRight: this.currentQuestion.isDoIt === 1 ? 1 : 2,
+						childStyleCode: this.childStyleCode,
 					}
 					const url = this.currentQuestion.isDoIt === 1 ? '/questionWare/commitQuestionWare' : '/questionWare/commitErrorQuestion'
 					this.$ajax({url: url, method: 'POST', data: data}, function(res) {
@@ -267,7 +333,7 @@ import { formatTime } from '../../utils/common.js'
 					})
 				}
 				//做过样式
-				if(this.answerArr.length && this.questionStyle === '单选') {
+				if(this.answerArr.length && (that.currentQuestion.questionType === 1||that.currentQuestion.questionType === 3)) {
 					if (this.currentQuestion.isDoIt ===1) {
 						this.styleArr[this.currentSubject-1] = 1
 					} else {
@@ -290,7 +356,8 @@ import { formatTime } from '../../utils/common.js'
 				const data  = {
 					code: this.currentQuestion.code,
 					answer: this.answerArr.join(','),
-					isRight: this.currentQuestion.isDoIt===1 ? 1 : 2
+					isRight: this.currentQuestion.isDoIt===1 ? 1 : 2,
+					childStyleCode: this.childStyleCode,
 				}
 				const url = this.currentQuestion.isDoIt === 1 ? '/questionWare/commitQuestionWare' : '/questionWare/commitErrorQuestion'
 				this.$ajax({url: url, method: 'POST', data: data}, function(res) {
@@ -300,7 +367,7 @@ import { formatTime } from '../../utils/common.js'
 					}
 				})
 				//做过样式
-				if(this.answerArr.length && this.questionStyle === '多选') {
+				if(this.answerArr.length && this.currentQuestion.questionType === 2) {
 					if (this.currentQuestion.isDoIt === 1) {
 						this.styleArr[this.currentSubject-1] = 1
 					} else {
@@ -399,11 +466,11 @@ import { formatTime } from '../../utils/common.js'
 		position: fixed;
 	}
 	.select_box span {
-		width: 25px;
-		height: 25px;
-		line-height: 25px;
+		width: 30px;
+		height: 30px;
+		line-height: 30px;
 		border: 1px solid #ccc;
-		border-radius: 25px;
+		border-radius: 30px;
 		float: left;
 		margin: 5px;
 	}
@@ -425,10 +492,10 @@ import { formatTime } from '../../utils/common.js'
 		border: 1px solid #2d8cf0;
 	}
 	.current_box span {
-		width: 25px;
-		height: 25px;
-		line-height: 25px;
-		border-radius: 25px;
+		width: 30px;
+		height: 30px;
+		line-height: 30px;
+		border-radius: 30px;
 		float: left;
 		margin: 5px;
 		color: #2d8cf0;
@@ -479,11 +546,27 @@ import { formatTime } from '../../utils/common.js'
 		text-align: center;
 		font-size: 14px;
 		color: #fff;
-		height: 25px;
-		line-height: 25px;
+		height: 30px;
+		line-height: 30px;
 		display: inline-block;
 		position: absolute;
 		left: -2px;
 		top: -1px;
+	}
+	.page_style {
+		width: 100%;
+		height: 30px;
+		line-height: 30px;
+		color: #2d8cf0;
+		border-bottom: 1px solid #2d8cf0;
+		margin-bottom: 10px;
+	}
+	.page_bottom {
+		width: 100%;
+		height: 30px;
+		line-height: 30px;
+		color: #2d8cf0;
+		border-top: 1px solid #2d8cf0;
+		margin-top: 10px;
 	}
 </style>

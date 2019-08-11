@@ -2,14 +2,15 @@
     <div class="exam">
 		<scroll-view scroll-y scroll-top="0" class="scroll_100">
         <div class="exam_header clearfix">
-			<span>模拟考试&nbsp;&nbsp;&nbsp;&nbsp;{{currentSubject}}/{{total}}</span>
+			<span>模拟考试<span style="padding-left:20px;"></span>{{currentSubject}}/{{total}}</span>
 			<i-button id="jiao" i-class="jiao" size="small" shape="circle" type="primary" @click="submitQ">交卷</i-button>
 			<div class="date">考试时间:{{currentDate}}</div>
 		</div>
 		<div class="subject">
-			<span class="icon_choose" v-if="questionStyle==='单选'">单选题</span>
-			<span class="icon_choose" v-if="questionStyle==='多选'">多选题</span>
-			<div class="title">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<span class="icon_choose" v-if="currentQuestion.questionType===1">单选题</span>
+			<span class="icon_choose" v-if="currentQuestion.questionType===2">多选题</span>
+			<span class="icon_choose" v-if="currentQuestion.questionType===3">判断题</span>
+			<div class="title"><span class="pad30"></span>
 				{{currentQuestion.question}}
 			</div>
 			<div class="select_group">
@@ -21,7 +22,7 @@
 				</div>
 			</div>
 		</div>
-		<div>
+		<div v-if="total">
 			<view class="view-wrap">
 				<text class="type-title">倒计时：</text>
 				<i-count-down
@@ -74,7 +75,7 @@ import { formatTime } from '../../utils/common.js'
 	  	data () {
 			return {
 				currentSubject: 1,
-				total: 1,
+				total: 0,
 				currentDate: '',
 				visible: false,
 				visibleB: false,
@@ -86,7 +87,6 @@ import { formatTime } from '../../utils/common.js'
 				totalQuestion: [],
 				currentQuestion: {},
 				showAnswer: false,
-				questionStyle: '单选',
 				answerArr: [],
 				rightAnswer: [],
 				submitAnswer: [],
@@ -102,50 +102,53 @@ import { formatTime } from '../../utils/common.js'
 				],
 				targetTime: 0,
 				clearTimer: false,
+				id: '',
 			}
 		},
-		onLoad() {
+		onLoad(options) {
+			this.childStyleCode = options.styleCode || ''
+			this.submitAnswer = []
 			this.currentSubject = 1
 			this.score = 0
 			const that = this
-			this.currentDate = formatTime(new Date())
-			this.targetTime = new Date().getTime() + 5400000
+			this.getQuestions()
+			wx.setNavigationBarTitle({title: '模拟考试'})
 		},
 		onShow() {
-			const that = this
-			wx.setNavigationBarTitle({title: '模拟考试'})
-			wx.showModal({
-              title: '提示',
-              content: '全真模拟考试，一旦开始中途不可退出，退出作废',
-              success (res) {
-                if (res.confirm) {
-                  that.getQuestions()
-                } else if (res.cancel) {
-                  	wx.navigateBack({
-						delta: 1
-				  	})
-                }
-              }
-            })
-			
 		},
 		methods: {
 			getQuestions() {
 				const that = this
-				this.$ajax({url: '/question/exam', method: 'POST'}, function(res) {
+				const data = {
+					childStyleCode: this.childStyleCode
+				}
+				this.$ajax({url: '/question/exam', method: 'POST', data: data }, function(res) {
 					if(res.status === 'success') {
+						that.currentDate = formatTime(new Date())
+			            that.targetTime = new Date().getTime() + 5400000
 						that.totalQuestion = res.result
 						that.currentQuestion = that.totalQuestion[0]
 						that.total = that.totalQuestion.length
 						that.totalArr = new Array(that.total).fill('1')
-						that.questionStyle = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
-					} else {
+						// that.currentQuestion.questionType = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+					} else if( res.error.code === 'DEV_BS_300002') {
 						wx.showModal({
 							title: '提示',
 							showCancel:false,
 							content: res.error.reason,
 							success:function(res) {
 								that.getQuestions()
+							}
+						})
+					} else if (res.error.code === 'DEV_BS_300001') {
+						wx.showModal({
+							title: '提示',
+							showCancel:false,
+							content: res.error.reason,
+							success:function(res) {
+								wx.reLaunch({
+								  url: '/pages/index/main'
+								})
 							}
 						})
 					}
@@ -204,7 +207,7 @@ import { formatTime } from '../../utils/common.js'
 					this.currentSubject ++
 				}
 				this.currentQuestion = this.totalQuestion[this.currentSubject-1]
-				this.questionStyle = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+				// this.currentQuestion.questionType = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				if(this.submitAnswer.length) {
 					// 读取记录的的答案
 					this.submitAnswer.map(item => {
@@ -247,7 +250,7 @@ import { formatTime } from '../../utils/common.js'
 					return false
 				}
 				//多选答案
-				if(this.questionStyle === '多选' && !this.currentQuestion.isSelect) {
+				if(this.currentQuestion.questionType === 2 && !this.currentQuestion.isSelect) {
 					if(item.status===undefined || item.status === '') {
 						item.status = 'select'
 						this.answerArr.push(item.key)
@@ -289,7 +292,6 @@ import { formatTime } from '../../utils/common.js'
 						this.submitAnswer.map((item, i)=> {
 							if(item.code === this.currentQuestion.code) {
 								kong = i
-								console.log(999999999999)
 								this.submitAnswer.splice(kong,1)
 							}
 						})
@@ -460,6 +462,11 @@ import { formatTime } from '../../utils/common.js'
 	}
 	.sub_correct {
 		background: #35db9c !important;
+	}
+	.exam_free {
+		width: 100%;
+		color: #35db9c;
+		text-align: center;
 	}
 	.type-title {
 		display: inline-block;
