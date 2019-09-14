@@ -1,9 +1,10 @@
 // 局域网
-// const host = 'http://192.168.0.103:1234/expendables/api'
+const host = 'http://192.168.0.107:1234/expendables/api'
 // 远程服务器
-const host = 'https://teyiguo.cn:1234/expendables/api'
+// const host = 'https://teyiguo.cn:1234/expendables/api'
 //远程隧道
 // const host = 'http://xinsiji.free.idcfengye.com/expendables/api'
+import md5 from 'js-md5'
 
 let token  = ''
 /* 获取token*/
@@ -14,7 +15,16 @@ export function Ajax (opts, cb=function(){}) {
       wx.showLoading({title: '拼命加载中...', mask: true})
     }
     token = wx.getStorageSync('token')
+    const encryptionKey = md5('dHW2jACX5NTxq7rY')
     const {url, method='GET', data={}} = opts
+    let headString
+    // console.log(method)
+    if (method == 'GET') {
+      headString = url.split('?')[1] || ''
+    } else {
+      headString = JSON.stringify(data)
+    }
+    // console.log(data)
     return new Promise((resolve, reject) => {
       wx.request({
         url: host + url,
@@ -23,6 +33,8 @@ export function Ajax (opts, cb=function(){}) {
         header: {
             "content-type": "application/json",
             'token': token || '',
+            'encryptionKey': encryptionKey,
+            'encryptionSecret': md5(headString)
         },
         success(res) {
           // 登录状态失效

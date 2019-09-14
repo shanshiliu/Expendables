@@ -104,12 +104,12 @@
   .info_main {
     padding: 20px;
     color: #333;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 32px;
   }
   .title {
     text-align: center;
-    font-size: 16px;
+    font-size: 18px;
     margin-top: 30px;
     margin-bottom: 20px;
   }

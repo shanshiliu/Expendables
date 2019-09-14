@@ -1,10 +1,11 @@
 <template>
-    <div class="exam">
+    <div class="login">
         <div class="info_header">
 			<image src="../../../../../static/images/icon.jpg" class="head-img"></image>
 			<!-- <div style="text-align:center;">特易过特种作业考试平台</div> -->
 		</div>
 		<div>
+			<button @click="handleBack()" class="backBtn">取消</button>
 			<button @getphonenumber="getPhoneNumber" open-type="getPhoneNumber" class="loginBtn">微信手机号登录</button>
 		</div>
     </div>
@@ -18,7 +19,6 @@
 		onLoad() {
 			// 是否为苹果用户
 			const systemInfo =  wx.getSystemInfoSync()
-			console.log(systemInfo)
 			let isApple
 			if(systemInfo.model.indexOf('iPhone') > -1) {
 			isApple = true
@@ -48,7 +48,7 @@
 								}
 							})
 						} else {
-							console.log('登录失败！' + res.errMsg)
+							// console.log('登录失败！' + res.errMsg)
 							wx.showToast({
 								title: '请退出小程序重新登录',
 								icon: 'none',
@@ -63,18 +63,21 @@
 			wx.setNavigationBarTitle({title: '授权登陆'})
 		},
 		methods: {
+			handleBack() {
+				// 首页
+				this.$backBeaforWin()
+			},
 			getPhoneNumber: function (e) {
 				const that = this
-				console.log(e.mp.detail)
 				if (e.mp.detail.errMsg !== 'getPhoneNumber:ok') {
-					wx.showModal({
-						title: '提示',
-						showCancel:false,
-						content: '未授权',
-						success:function(res) {
-							that.$backBeaforWin()
-						}
-					})
+					// wx.showModal({
+					// 	title: '提示',
+					// 	showCancel:false,
+					// 	content: '未授权',
+					// 	success:function(res) {
+						that.$backBeaforWin()
+					// 	}
+					// })
 				}else {
 						that.$ajax({
 						url: '/wxUser/wxLoginChecked',
@@ -85,7 +88,6 @@
 						},
 						method: 'POST'
 						}, function(res) {
-							console.log(res.result)
 							const info = res.result
 							if (res.status === 'success') {
 								wx.setStorageSync('token',res.result.token)
@@ -109,6 +111,9 @@
 	}
 </script>
 <style scoped>
+	.login {
+		width: 100%;
+	}
 	.head-img{
 		width:70px;
 		height:70px;
@@ -125,5 +130,19 @@
 		padding:0px 20px;
 		margin: 0 20px;
 		background: #2d8cf0;
+		width: calc(60% - 40px);
+		display: inline-block;
+		/* float: left; */
+	}
+	.backBtn {
+		font-size:14px;
+		color:#111;
+		padding:0px 20px;
+		margin: 0 20px;
+		background: #fff;
+		width: 30%;
+		display: inline-block;
+		width: calc(40% - 40px);
+		/* float:right; */
 	}
 </style>

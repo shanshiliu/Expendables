@@ -3,17 +3,17 @@
     <scroll-view scroll-y style="height:calc(100vh);" scroll-top="0" :scroll-into-view="currView">
       <dl class="ub-box ub-col">
         <dd class="z-width-100-percent z-bg-color-fff ub-box z-border-bottom-1-eee">
-          <span class="z-font-size-14 z-font-weight-bold z-color-333 z-padding-all-8-px">当前城市：{{city}}</span>
+          <span class="z-font-size-16 z-font-weight-bold z-color-333 z-padding-all-8-px">当前城市：{{city}}</span>
         </dd>
         <dd class="z-width-100-percent z-bg-color-fff ub-box">
-          <span class="z-font-size-14 z-color-333 z-font-weight-bold z-padding-all-8-px">附近学校</span>
+          <span class="z-font-size-16 z-color-333 z-font-weight-bold z-padding-all-8-px">附近学校</span>
         </dd>
         <dd class="ub-box ub-col">
           <div class="z-width-100-percent z-bg-color-fff ub-box ub-col">
             <ul class="ub-box ub-col">
              <div v-if="cityList.length===0" class="no_data">暂无数据</div>
-              <li @click.stop="clickCity(city)" v-for="(city, i) in cityList" :key="String(i)" class="city ub-flex-1 z-font-size-14 z-color-666">{{city.organizationName}}
-                <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888 "></i>
+              <li @click.stop="clickCity(city)" v-for="(city, i) in cityList" :key="String(i)" class="city ub-flex-1 z-font-size-16 z-color-666">{{city.organizationName}}
+                <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-16 z-color-888 "></i>
               </li>
             </ul>
           </div>

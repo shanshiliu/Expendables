@@ -99,7 +99,6 @@ import {formatTime} from '../../utils/common.js'
 				// console.log(e)
 				const column = e.mp.detail.column
 				const value = e.mp.detail.value
-				console.log(value)
 				if (column === 0) {
 					this.multiIndex = [value,0,0]
 					this.multiArray[1] = this.multiArray[column][value].styleArray
@@ -107,13 +106,11 @@ import {formatTime} from '../../utils/common.js'
 				} else if (column === 1) {
 					this.multiIndex = [this.multiIndex[0],value,0]
 					this.multiArray[2] = this.multiArray[column][value].styleArray
-					// console.log(this.multiArray[column][value],999)
 				} else {
 					this.multiIndex[2] = value
 				}
 				this.multiArray = [this.multiArray[0],this.multiArray[1],this.multiArray[2]]
 				this.selectWork = this.multiArray[2][this.multiIndex[2]]
-				// const index = this.multiIndex[]
 			},
 			selectHandle(num) {
 				this.current = num
@@ -157,7 +154,6 @@ import {formatTime} from '../../utils/common.js'
 								})
 							},
 							'fail':function(res){
-								console.log('fail');
 							},
 							'complete': function(res){
 								wx.setStorageSync('workId', 1)
@@ -198,7 +194,6 @@ import {formatTime} from '../../utils/common.js'
 								})
 							},
 							'fail':function(res){
-								console.log('fail');
 							},
 							'complete': function(res){
 								that.orderSuccess({

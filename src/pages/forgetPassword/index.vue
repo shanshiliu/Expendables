@@ -52,7 +52,6 @@ import {formatTime} from '../../utils/common.js'
 			this.currentDate = formatTime(new Date())
 			this.totalArr = new Array(100)
 			this.targetTime = new Date().getTime() + 6430000
-			console.log(this.targetTime)
 		},
 		onShow() {
 		    wx.setNavigationBarTitle({title: '忘记密码'})
@@ -63,7 +62,6 @@ import {formatTime} from '../../utils/common.js'
 					return
 				}
 				this.showBtn = true;
-				// console.log(88888888)
 				this.content = this.totalTime + 's后重新发送' //这里解决60秒不见了的问题
 				let clock = setInterval(() => {
 				this.totalTime--
@@ -81,7 +79,6 @@ import {formatTime} from '../../utils/common.js'
 
 			},
 			handleOk(index) {
-				// console.log(index)
 				this.$redirectTo('/pages/login/main')
 				this.visible = false
 				this.$toast({
@@ -91,12 +88,10 @@ import {formatTime} from '../../utils/common.js'
 				
 			},
 			handleCancel(index) {
-				console.log(index)
 				this.$reLaunch('/pages/index/main')
 				this.visible = false
 			},
 			changeNumber(value) {
-				console.log('888888888888',value)
 			},
 			nextHandle() {
 				if(this.currentSubject === this.total) {
@@ -106,7 +101,6 @@ import {formatTime} from '../../utils/common.js'
 				this.isSelect = false
 			},
 			openModal() {
-				console.log(this.visible)
 				this.visible = true
 			},
 			handleClose() {

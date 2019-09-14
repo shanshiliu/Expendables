@@ -5,7 +5,7 @@
         <dd class="ub-box ub-col" v-if="totalQuestion.length">
           <div class="z-width-100-percent z-bg-color-fff ub-box ub-col exam_box">
             <ul class="ub-box ub-col">
-              <li @click.stop="clickRecord(item)" v-for="(item, i) in totalQuestion" :key="i" :class="{'city':true, 'ub-flex-1':true, 'z-font-size-14':true, 'z-color-666':true, 'exam_li':true, 'no_submit':item.examQuestionCount!=100}">
+              <li @click.stop="clickRecord(item)" v-for="(item, i) in totalQuestion" :key="i" :class="{'city':true, 'ub-flex-1':true, 'z-font-size-16':true, 'z-color-666':true, 'exam_li':true, 'no_submit':item.examQuestionCount!=100}">
                 <div>考试成绩：{{item.examScore}}分 <span>用时：{{item.timeline}}</span></div>
                 <div>考试时间：{{item.examStartTime}}</div>
                 <span class="fr" v-if="item.examQuestionCount===100">查看</span>
@@ -34,7 +34,6 @@
   parseInt(hour) > 0 ? hour = parseInt(hour)+"小时" : hour = ''
   parseInt(m) > 0? m = parseInt(m)+"分" : m = ''
   // parseInt(s) > 0 ? parseInt(s)
-  // console.log(parseInt(s))
   return  hour + m + s + '秒'
 }
 
@@ -53,7 +52,6 @@
           item['timeline'] = longTime(Date.parse(item.examEndTime) - Date.parse(item.examStartTime))
           return item
         })
-        console.log(that.totalQuestion)
 			})
     },
     onShow() {
@@ -98,6 +96,7 @@
   .exam_box {
     border-top:1px solid #f5f5f5;
     border-bottom:1px solid #f5f5f5;
+    font-size: 16px;
   }
   .exam_title {
     margin: 0 20px;
@@ -117,10 +116,13 @@
   .exam_li .fr {
     position: absolute;
     top: 20px;
-    padding: 10px;
+    padding: 10px 20px;
     background: #2d8cf0;
     color: white;
     border-radius: 40px;
     right: 10px;
+  }
+  .z-font-size-16 {
+    font-size: 16px;
   }
 </style>

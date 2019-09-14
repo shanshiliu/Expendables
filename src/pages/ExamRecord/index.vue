@@ -205,8 +205,8 @@ import { formatTime } from '../../utils/common.js'
 	}
 	.title {
 		padding-bottom: 10px;
-		line-height: 24px;
-		font-size: 14px;
+		line-height: 30px;
+		font-size: 16px;
 	}
 	.radio {
 		display: block;
@@ -263,7 +263,7 @@ import { formatTime } from '../../utils/common.js'
 		border-radius: 5px;
 		padding:5px;
 		margin:5px;
-		font-size: 14px;
+		font-size: 16px;
 		/* background: rgb(219, 216, 216); */
 	}
 	.icon-unif060 {

@@ -43,7 +43,6 @@ export default {
       'pages/buyVip/main',
       'pages/wrongBook/main',
       'pages/myCollection/main',
-      'pages/examRecord/main',
       'pages/record/main',
       'pages/help/main',
       'pages/root/main',
@@ -54,6 +53,7 @@ export default {
       'pages/menuList/main',
       'pages/schoolList/main',
       'pages/schoolInfo/main',
+      'pages/examRecord/main',
     ],
     window: {
       backgroundTextStyle: 'light',

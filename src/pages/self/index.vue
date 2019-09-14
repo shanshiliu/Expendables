@@ -18,15 +18,6 @@
       </dd>
     </dl>
     <dl class="ub-box ub-col z-margin-top-10-px" style="background:#fff;">
-      <dd @click.stop="handleJump('/pages/buyVip/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee" v-if="!isApple">
-        <p class="ub-box ub-ver">
-        <i class="iconfont icon-huiyuan" style="color:#2d8cf0;font-size:20px"></i>
-        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">购买会员</span>
-        </p>
-        <p class="ub-box ub-ver">
-        <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
-        </p>
-      </dd>
       <dd @click.stop="handleJump('/pages/account/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-huiyuan" style="color:#2d8cf0;font-size:20px"></i>
@@ -36,7 +27,7 @@
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
         </p>
       </dd>
-      <dd @click.stop="handleJump('/pages/citySelect/main?id=1')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
+      <!-- <dd @click.stop="handleJump('/pages/citySelect/main?id=1')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-renyuanxuanzetubiao" style="color:#2d8cf0;font-size:20px"></i>
         <span class="z-font-size-15 z-color-666 z-padding-h-10-px">我的工种 (切换)</span>
@@ -53,7 +44,7 @@
         <p class="ub-box ub-ver">
         <i class="iconfont icon-xiayiyeqianjinchakangengduo z-font-size-14 z-color-888"></i>
         </p>
-      </dd>
+      </dd> -->
       <dd @click.stop="handleJump('/pages/message/main')" class="z-padding-all-10-px ub-box ub-between" style="border-bottom:1px solid #eee">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-bangzhufankui1" style="color:#2d8cf0;font-size:20px"></i>
@@ -66,7 +57,7 @@
        <dd @click.stop="clickCall()" class="z-padding-all-10-px ub-box ub-between">
         <p class="ub-box ub-ver">
         <i class="iconfont icon-dianhua" style="color:#2d8cf0;font-size:20px"></i>
-        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">客服电话：10107888</span>
+        <span class="z-font-size-15 z-color-666 z-padding-h-10-px">客服电话：13052033590</span>
         </p>
       </dd>
     </dl>
@@ -76,10 +67,9 @@
 export default {
   computed: {
     isLogin() {
-      return this.accountInfo.token ? true : false
+      return this.token ? true : false
     },
     userInfo () {
-      console.log(this.accountInfo)
       return this.accountInfo
     },
   },
@@ -88,19 +78,20 @@ export default {
       visible: false,
       accountInfo: {},
       isApple: false,
-      sessionKey: ''
+      sessionKey: '',
+      token: ''
     }
   },
   onload() {
     // 微信登录
     const that = this
-    const token = wx.getStorageSync('token') || ''
-    if (!token) {
+    this.token = wx.getStorageSync('token') || ''
+    if (!this.token) {
       wx.login({
         success(res) {
           if (res.code) {
             // 后台登录获取token
-            console.log(res.code)
+            // console.log(res.code)
             wx.setStorageSync('code', res.code)
             that.$ajax({url: `/wxUser/wxLogin/${res.code}`, method: 'POST'},function(res) {
               if (res.status === 'success') {
@@ -128,6 +119,7 @@ export default {
   },
   onShow() {
     this.accountInfo = wx.getStorageSync('accountInfo')
+    this.token = wx.getStorageSync('token')
     this.isApple = wx.getStorageSync('isApple')
   },
   methods: {
@@ -163,6 +155,7 @@ export default {
 								wx.setStorageSync('accountInfo', info)
                 wx.setStorageSync('work', res.result.work)
                 that.accountInfo = info
+                that.token = res.result.token
             }
           })
       }
@@ -200,6 +193,7 @@ export default {
                 wx.setStorageSync('token',res.result.token)
                 wx.setStorageSync('accountInfo', info)
                 that.accountInfo = info
+                that.token = res.result.token
               } else {
                 wx.showToast({
 									title: '获取登录异常',
@@ -226,6 +220,7 @@ export default {
         key: 'token',
         success(res) {
           console.log(res)
+          that.token = ''
         }
       })
       wx.removeStorage({
@@ -242,11 +237,11 @@ export default {
     },
     clickCall() {
       wx.showActionSheet({
-        itemList: ['客服电话：10107888'],
+        itemList: ['客服电话：13052033590'],
         success(res) {
           switch(res.tapIndex) {
             case 0:
-              wx.makePhoneCall({phoneNumber: '10107888'})
+              wx.makePhoneCall({phoneNumber: '13052033590'})
               break
           }
         }

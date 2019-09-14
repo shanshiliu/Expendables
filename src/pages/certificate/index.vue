@@ -39,7 +39,6 @@
 	},
     methods: {
 		clickCity(item) {
-			console.log(item.url)
 			this.$openWin('/pages/webview/main?url=' + item.url)
 		}
     },

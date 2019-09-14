@@ -52,7 +52,7 @@
           :key="String(key)" v-for="(idx, key) in iconMap" @click.stop="handleJump(idx.url)">
           <div class="mr8">
             <dd class="icon ub-box ub-ver iconfont" :class="key" :style="{background: iconMap[key]['bk']}"></dd>
-            <span class="z-padding-v-8-px z-font-size-12 z-color-333">{{iconMap[key]['title']}}</span>
+            <div class="z-padding-v-8-px z-font-size-12 z-color-333 title_span">{{iconMap[key]['title']}}</div>
           </div>
         </div>
       </dl>
@@ -85,7 +85,7 @@ let qqmapsdk = new QQMapWX({
         },
         iconMap: {
           'icon-zhiye1': {title: '添加工种', bk: '#EF8B3E', url: '/pages/citySelect/main?id=2'},
-          'icon-cuotiben': {title: '错  题  集', bk: '#EC5B6E', url: '/pages/wrongBook/main'},
+          'icon-cuotiben': {title: '错题集', bk: '#EC5B6E', url: '/pages/wrongBook/main'},
           'icon-icon_kaoshijilu_normal': {title: '考试记录', bk: '#F3AE42', url: '/pages/record/main'},
           'icon-fav': {title: '我的收藏', bk: '#5DC1A9', url: '/pages/myCollection/main'},
           'icon-chaxunzhengshu': {title: '证书查询', bk: '#8a90fa', url: '/pages/certificate/main'},
@@ -99,11 +99,12 @@ let qqmapsdk = new QQMapWX({
         activeId: 2,
         currentCity: '',
         adcode: '',
+        token: '',
       }
     },
     computed: {
       isLogin() {
-        return this.accountInfo.token ? true : false
+        return this.token ? true : false
       },
     },
     onLoad() {
@@ -127,6 +128,7 @@ let qqmapsdk = new QQMapWX({
     onShow() {
       this.activeId = wx.getStorageSync('workId') || 1
       this.accountInfo = wx.getStorageSync('accountInfo')
+      this.token = wx.getStorageSync('token')
       this.selectSch = wx.getStorageSync('work')
     },
     onTabItemTap(e) {
@@ -152,12 +154,10 @@ let qqmapsdk = new QQMapWX({
                 longitude: longitude
               },
               success: function (res) {
-                console.log(res.result,88888888)
                 that.currentCity = res.result.address_component.city
                 that.adcode = res.result.ad_info.adcode
               },
               fail: function (res) {
-                console.log(res, 'fail')
               }
             })
           }
@@ -172,13 +172,11 @@ let qqmapsdk = new QQMapWX({
             if (res.confirm) {
               that.$openWin('/pages/citySelect/main?id=2')
             } else if (res.cancel) {
-              console.log('用户点击取消')
             }
           }
         })
       },
       bindPickerChange(e) {
-        // console.log(9999999999999999)
         const that = this
         this.$ajax({url: '/chooseStyle/getChooseStyle'}, function(res) {
           if (res.status === 'success') {
@@ -191,11 +189,9 @@ let qqmapsdk = new QQMapWX({
             that.arraySch = res.result
           }
         })
-				console.log('picker发送选择改变，携带值为', e.mp.detail.value)
 				this.indexSch = e.mp.detail.value
         const temp =  this.arraySch[this.indexSch] 
         // 切换工种
-        // const that = this
         that.$ajax({url: '/chooseStyle/useingStyle', method: 'POST', data: temp}, function(res) {
           if (res.status === 'success') {
             that.selectSch = temp
@@ -221,7 +217,6 @@ let qqmapsdk = new QQMapWX({
                 if (res.confirm) {
                   that.$openWin('/pages/account/main')
                 } else if (res.cancel) {
-                  console.log('用户点击取消')
                 }
               }
             })
@@ -261,7 +256,7 @@ let qqmapsdk = new QQMapWX({
               if (res.confirm) {
                 that.$openWin('/pages/Exercise/main?id=' + that.activeId)
               } else if (res.cancel) {
-                console.log('用户点击取消')
+                // console.log('用户点击取消')
                 that.$ajax({url: '/questionWare/refreshQuestionWare', method:'POST'}, function(res) {
                   if (res.status === 'success') {
                     that.$openWin('/pages/Exercise/main')
@@ -273,7 +268,6 @@ let qqmapsdk = new QQMapWX({
           return
         }
         // 模拟考试
-        console.log(url)
         if(url === '/pages/exam/main' && this.accountInfo.isChildMenu === 1) {
             that.$ajax({url: '/wxUser/getExamNum', method:'GET'}, function(res) {
               if (res.status === 'success') {
@@ -402,9 +396,6 @@ let qqmapsdk = new QQMapWX({
     transform: rotate(-45deg);
     position: absolute;
   }
-  .shadow {
-    /* box-shadow:2px 2px 15px #333333; */
-  }
   .work_hidden {
     max-width: 150px;
     white-space: nowrap;
@@ -467,5 +458,9 @@ let qqmapsdk = new QQMapWX({
     .rigth_btn {
       /* width: 30%; */
       flex: 1;
+    }
+    .title_span {
+      text-align: center;
+      width: 54px;
     }
 </style>

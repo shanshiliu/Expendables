@@ -12,7 +12,7 @@
 			<!-- <input :type="textarea" v-model="value"  placeholder=""> -->
 		</div>
 		<div>
-			<i-button i-class="btn_question" size="small" type="primary" @click="submitHandle">提交</i-button>
+			<i-button i-class="btn_question" size="small" type="primary" @click="submitHandle" :disabled="visible">提交</i-button>
 		</div>
     </div>
 </template>
@@ -21,6 +21,7 @@
 	  	data () {
 			return {
 				value: '',
+				visible: false,
 			}
 		},
 		onShow() {
@@ -32,6 +33,7 @@
 		methods: {
 			submitHandle() {
 				const that = this
+				this.visible = true
 				this.$ajax({url: '/msg/feedMsg', method: 'POST', data: {
 						message: that.value,
 					}}, function(res) {
@@ -42,6 +44,7 @@
 						})
 						setTimeout(function() {
 						   that.$backBeaforWin()
+						   that.visible = false
 						}, 2000)
 				})
 			}

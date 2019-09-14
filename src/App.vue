@@ -11,7 +11,7 @@ export default {
     const that = this
     // 是否为苹果用户
     const systemInfo =  wx.getSystemInfoSync()
-    console.log(systemInfo)
+    // console.log(systemInfo)
     let isApple
     if(systemInfo.model.indexOf('iPhone') > -1) {
       isApple = true

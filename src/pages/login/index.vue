@@ -29,7 +29,6 @@ import {formatTime} from '../../utils/common.js'
 			this.currentDate = formatTime(new Date())
 			this.totalArr = new Array(100)
 			this.targetTime = new Date().getTime() + 6430000
-			console.log(this.targetTime)
 		},
 		onShow() {
 			wx.setNavigationBarTitle({title: '登录'})

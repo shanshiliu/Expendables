@@ -81,12 +81,10 @@ import {formatTime} from '../../utils/common.js'
 				const arr3 = res.result[0].styleArray[0].styleArray
 				arr.push(arr1,arr2,arr3)
 				that.multiArray = arr
-				console.log(that.multiArray[0][that.multiIndex[0]].styleName)
 			})
 			this.currentDate = formatTime(new Date())
 			this.totalArr = new Array(100)
 			this.targetTime = new Date().getTime() + 6430000
-			console.log(this.targetTime)
 		},
 		onShow() {
 			wx.setNavigationBarTitle({title: '卡密激活'})
@@ -100,13 +98,13 @@ import {formatTime} from '../../utils/common.js'
 				// console.log(e)
 				const column = e.mp.detail.column
 				const value = e.mp.detail.value
-				console.log(value)
+				// console.log(value)
 				if (column === 0) {
 					console.log(this.multiArray[column][value])
 					this.multiIndex = [value,0,0]
 					this.multiArray[1] = this.multiArray[column][value].styleArray
 					this.multiArray[2] = this.multiArray[1][0].styleArray
-					console.log(this.multiArray[1])
+					// console.log(this.multiArray[1])
 				} else if (column === 1) {
 					this.multiIndex = [this.multiIndex[0],value,0]
 					this.multiArray[2] = this.multiArray[column][value].styleArray
@@ -117,15 +115,15 @@ import {formatTime} from '../../utils/common.js'
 				this.multiArray = [this.multiArray[0],this.multiArray[1],this.multiArray[2]]
 				this.selectWork = this.multiArray[2][this.multiIndex[2]]
 				// const index = this.multiIndex[]
-				console.log(this.multiArray[2][this.multiIndex[2]])
+				// console.log(this.multiArray[2][this.multiIndex[2]])
 				
 			},
 			toggleLeft1() {
 				this.visibleD = false
 			},
 			bindPickerChange(e) {
-				console.log(e)
-				console.log('picker发送选择改变，携带值为', e.mp.detail.value)
+				// console.log(e)
+				// console.log('picker发送选择改变，携带值为', e.mp.detail.value)
 				this.indexSch = e.mp.detail.value
 				this.selectSch =  this.arraySch[this.indexSch]
 				// this.setData({
@@ -179,14 +177,14 @@ import {formatTime} from '../../utils/common.js'
 							}
 						})
 					} else if (res.cancel) {
-						console.log('用户点击取消')
+						// console.log('用户点击取消')
 					}
 				}
 				})
 			},
 			updateUserInfo() {
 				const that = this
-				this.$ajax({url: '/wxUser/getUserInfo  ', method: 'GET'}, function(res) {
+				this.$ajax({url: '/wxUser/getUserInfo', method: 'GET'}, function(res) {
 					if(res.status === 'success') {
 						wx.setStorageSync('accountInfo', res.result)
 						wx.setStorageSync('work', res.result.work)
@@ -196,7 +194,9 @@ import {formatTime} from '../../utils/common.js'
 							duration: 2000
 						})
 						wx.setStorageSync('workId', 1)
-						that.$reLaunch('/pages/index/main')
+						setTimeout(function() {
+						   that.$reLaunch('/pages/index/main')
+						}, 2000)
 					}
 				})
 			},
@@ -211,12 +211,12 @@ import {formatTime} from '../../utils/common.js'
 				
 			},
 			handleCancel(index) {
-				console.log(index)
+				// console.log(index)
 				this.$reLaunch('/pages/index/main')
 				this.visible = false
 			},
 			changeNumber(value) {
-				console.log('888888888888',value)
+				// console.log('888888888888',value)
 			},
 			nextHandle() {
 				if(this.currentSubject === this.total) {
@@ -226,7 +226,7 @@ import {formatTime} from '../../utils/common.js'
 				this.isSelect = false
 			},
 			openModal() {
-				console.log(this.visible)
+				// console.log(this.visible)
 				this.visible = true
 			},
 			handleClose() {

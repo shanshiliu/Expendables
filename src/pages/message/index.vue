@@ -39,7 +39,6 @@
 				this.$ajax({url: '/msg/feedMsg', method: 'POST', data: {
 						message: that.value,
 					}}, function(res) {
-					console.log('成功')
 					that.$backBeaforWin()
 				})
 			}
@@ -51,7 +50,7 @@
 		background: #e8e8e8;
 		padding: 20px 0px;
 		width: calc(100% -40px);
-		height:calc(100% - 50px);
+		min-height:calc(100% - 50px);
 	}
 	.one_mes {
 		margin-bottom: 20px;

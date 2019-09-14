@@ -27,33 +27,25 @@ import {formatTime} from '../../utils/common.js'
 			this.currentDate = formatTime(new Date())
 			this.totalArr = new Array(100)
 			this.targetTime = new Date().getTime() + 6430000
-			console.log(this.targetTime)
 		},
 		onShow() {
 			wx.setNavigationBarTitle({title: '登录'})
 		},
 		methods: {
 			getUserInfo1(){
-				console.log('click事件首先触发')
 				// 判断小程序的API，回调，参数，组件等是否在当前版本可用。  为false 提醒用户升级微信版本
-				// console.log(wx.canIUse('button.open-type.getUserInfo'))
 				if(wx.canIUse('button.open-type.getUserInfo')){
 				// 用户版本可用
 				}else{
-				console.log('请升级微信版本')
 				}
 			},
 			bindGetUserInfo(e) {
-				// console.log(e.mp.detail.rawData)
 				if (e.mp.detail.rawData){
 				//用户按了允许授权按钮
-				console.log('用户按了允许授权按钮')
-				console.log(e.mp.detail.iv)
-				console.log(e.mp.detail.encryptedData)
+				// console.log(e.mp.detail.encryptedData)
 					
 				} else {
 				//用户按了拒绝按钮
-				console.log('用户按了拒绝按钮')
 				}
 			},
 			submitForm() {
@@ -92,10 +84,8 @@ import {formatTime} from '../../utils/common.js'
 			onGetUserInfo (e) {
 				this.$store.commit('updateIsLogin', true)
 				this.$store.commit('updateUser', e.mp.detail.userInfo)
-				console.log(e.mp.detail)
 			},
 			changeNumber(value) {
-				console.log('888888888888',value)
 			},
 			nextHandle() {
 				if(this.currentSubject === this.total) {
@@ -105,7 +95,6 @@ import {formatTime} from '../../utils/common.js'
 				this.isSelect = false
 			},
 			openModal() {
-				console.log(this.visible)
 				this.visible = true
 			},
 			handleClose() {

@@ -61,6 +61,8 @@
 			<div class="scroe_txt">
 				<div>恭喜您考试顺利，提交成功</div>
 				<div>本次考试得分：<span>{{score}}</span>分</div>
+				<div>安监局及格分数80分</div>
+				<div>质监局及格分数70分</div>
 				<div>是否前往考试记录查看</div>
 			</div>
 		</i-modal>
@@ -181,7 +183,6 @@ import { formatTime } from '../../utils/common.js'
 				this.visibleB = false
 			},
 			handleScore(e) {
-				console.log(e)
 				this.visibleC = false
 				this.$redirectTo('/pages/record/main')
 			},
@@ -216,7 +217,6 @@ import { formatTime } from '../../utils/common.js'
 						}
 					})
 				}
-				console.log(this.answerArr)
 			},
 			openModal() {
 				this.visible = true
@@ -281,7 +281,6 @@ import { formatTime } from '../../utils/common.js'
 				} else {
 					this.totalArr[this.currentSubject-1] = '1'
 				}
-				console.log(this.totalArr)
 				this.$forceUpdate()
 			},
 			saveAnswer() {
@@ -322,10 +321,8 @@ import { formatTime } from '../../utils/common.js'
 						}
 					})
 				} else {
-					console.log('push')
 					this.submitAnswer.push(params)					
 				}
-				console.log(this.submitAnswer)
 			}
 		},
 		// onUnload() {
@@ -381,8 +378,8 @@ import { formatTime } from '../../utils/common.js'
 	}
 	.title {
 		padding-bottom: 10px;
-		line-height: 24px;
-		font-size: 14px;
+		line-height: 30px;
+		font-size: 16px;
 	}
 	.radio {
 		display: block;
@@ -398,7 +395,7 @@ import { formatTime } from '../../utils/common.js'
 	.float_menu {
 		width: 30px;
 		height: 30px;
-		position: fixed;
+		position: absolute;
 		right: 130px;
 		border: 1px solid #2d8cf0;
 		top: 25px;
@@ -443,7 +440,7 @@ import { formatTime } from '../../utils/common.js'
 		border-radius: 5px;
 		padding:5px;
 		margin:5px;
-		font-size: 14px;
+		font-size: 16px;
 		/* background: rgb(219, 216, 216); */
 	}
 	.icon-unif060 {

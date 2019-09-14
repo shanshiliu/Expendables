@@ -53,8 +53,8 @@
 					正确答案：<span v-for="(item,index) in currentQuestion.rightAnswerList" :key="String(index)">{{item}}</span>
 				</div>
 				<div class="box_bottom">
-					<i-button i-class="btn_question" size="small" @click="jumpHandle('prev')" :disabled="currentSubject===1">上一题</i-button>
-					<i-button i-class="btn_question" size="small" type="primary" @click="jumpHandle('next')" :disabled="currentSubject===total">下一题</i-button>
+					<i-button i-class="btn_question" size="small" @click="jumpHandle('prev')" :disabled="currentTotal===1">上一题</i-button>
+					<i-button i-class="btn_question" size="small" type="primary" @click="jumpHandle('next')" :disabled="currentTotal==total">下一题</i-button>
 				</div>
 			</div>
 		</scroll-view>
@@ -159,7 +159,6 @@ import { formatTime } from '../../utils/common.js'
 			},
 			scrolltolower() {
 				const that = this
-				console.log(that.total)
 				if(that.pageNo*that.pageLength >= that.total) {
 					return
 				}
@@ -180,7 +179,14 @@ import { formatTime } from '../../utils/common.js'
 			getQuestions() {
 				// 获取题
 				const that = this
-				const data = that.totalArr.slice(that.pageNum*that.pageSize-that.pageSize,that.pageNum*that.pageSize)
+				let data
+				if (that.pageNum*that.pageSize >200) {
+					const end = (that.pageNum*that.pageSize%200) === 0 ? 200 : (that.pageNum*that.pageSize%200)
+					data = that.totalArr.slice(((that.pageNum*that.pageSize-that.pageSize)%200),end)
+				} else {
+					const end = (that.pageNum*that.pageSize%200) === 0 ? 200 : (that.pageNum*that.pageSize%200)
+					data = that.totalArr.slice(that.pageNum*that.pageSize-that.pageSize,end)
+				}
 				that.$ajax({url: `/questionWare/getQuestionWare`, method: 'POST', data: data}, function(res) {
 					if(res.error && res.error.code == 'DEV_BS_200014') {
 						wx.showToast({
@@ -191,7 +197,7 @@ import { formatTime } from '../../utils/common.js'
 						return
 					}
 					that.totalQuestion = res.result.list
-					that.currentQuestion = res.result.list[Math.abs(that.currentSubject%10-1)]
+					that.currentQuestion = res.result.list[Math.abs((that.currentSubject-1)%10)]
 					// that.currentQuestion.questionType = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 					that.changeStyle()
 					// that.totalQuestion = that.totalQuestion.concat(res.result.list)
@@ -236,27 +242,54 @@ import { formatTime } from '../../utils/common.js'
 				const that = this
 				this.answerArr = []
 				if(value === 'prev') {
-					if(this.currentSubject===1){
+					if(this.currentTotal===1){
 						return
 					}
 					this.currentSubject --
 					this.currentTotal --
 				} else if(value === 'next') {
-					if(this.currentSubject===this.totalArr.length){
+					if(this.currentTotal===this.total){
 						return
 					}
 					this.currentSubject ++
 					this.currentTotal ++
 				}
-				//判断请求题
-				if(this.currentSubject-(this.pageSize*this.pageNum)>=1 || this.currentSubject-(this.pageSize*this.pageNum)<=-10) {
-					this.pageNum = Math.ceil(this.currentSubject/this.pageSize)
-					this.getQuestions()
+				if(this.currentTotal-(this.pageLength*this.pageNo)>=1 || this.currentTotal-(this.pageLength*this.pageNo)<=-200) {
+					//total要翻页了
+					this.pageNo = Math.ceil(this.currentTotal/this.pageLength)
+					this.$ajax({url: `/questionWare/getQuestionCodes?childStyleCode=${this.childStyleCode}&pageNum=${this.pageNo}&pageSize=${this.pageLength}`, method: 'GET'}, function(res) {
+						if(res.status === 'success') {
+							that.totalArr = res.result.codes
+							that.styleArr = res.result.isRights
+							//判断请求题
+							if(that.currentSubject-(that.pageSize*that.pageNum)>=1 || that.currentSubject-(that.pageSize*that.pageNum)<=-10) {
+								that.pageNum = Math.ceil(that.currentSubject/that.pageSize)
+								that.getQuestions()
+							} else {
+								that.currentQuestion = that.totalQuestion[Math.abs((that.currentSubject-1)%10)]
+								// that.currentQuestion.questionType = that.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+								that.changeStyle()
+							}
+						} else {
+							wx.showToast({
+								title: res.error.reason,
+								icon: 'none',
+								duration: 2000
+							})
+						}
+					})
 				} else {
-					this.currentQuestion = this.totalQuestion[Math.abs(that.currentSubject%10-1)]
-					// this.currentQuestion.questionType = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
-					that.changeStyle()
+					//判断请求题
+					if(this.currentSubject-(this.pageSize*this.pageNum)>=1 || this.currentSubject-(this.pageSize*this.pageNum)<=-10) {
+						this.pageNum = Math.ceil(this.currentSubject/this.pageSize)
+						this.getQuestions()
+					} else {
+						this.currentQuestion = this.totalQuestion[Math.abs((that.currentSubject-1)%10)]
+						// this.currentQuestion.questionType = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
+						that.changeStyle()
+					}
 				}
+				
 			},
 			openModal() {
 				this.visible = true
@@ -274,7 +307,7 @@ import { formatTime } from '../../utils/common.js'
 					this.pageNum = Math.ceil(this.currentSubject/this.pageSize)
 					this.getQuestions()
 				} else {
-					this.currentQuestion = this.totalQuestion[Math.abs(that.currentSubject%10-1)]
+					this.currentQuestion = this.totalQuestion[Math.abs((that.currentSubject-1)%10)]
 				//   this.currentQuestion.questionType = this.currentQuestion.rightAnswerList.length === 1 ? '单选' : '多选'
 				}
 				this.visible = false
@@ -286,7 +319,6 @@ import { formatTime } from '../../utils/common.js'
 				}
 				//多选答案
 				if(this.currentQuestion.questionType === 2 && this.currentQuestion.isDoIt === 2) {
-					console.log(44444)
 					if(item.status===undefined || item.status === '') {
 						item.status = 'select'
 						this.answerArr.push(item.key)
@@ -307,7 +339,6 @@ import { formatTime } from '../../utils/common.js'
 						item.status = 'correct'
 						this.currentQuestion.isDoIt = 1
 					} else {
-						console.log(rightTemp)
 						this.currentQuestion.answerMapList.map(lis => {
 							if(lis.key === item.key) {
 								lis.status = 'error'
@@ -327,7 +358,6 @@ import { formatTime } from '../../utils/common.js'
 					const url = this.currentQuestion.isDoIt === 1 ? '/questionWare/commitQuestionWare' : '/questionWare/commitErrorQuestion'
 					this.$ajax({url: url, method: 'POST', data: data}, function(res) {
 						if(res.status) {
-							console.log('成功')
 							that.answerArr = []
 						}
 					})
@@ -335,18 +365,16 @@ import { formatTime } from '../../utils/common.js'
 				//做过样式
 				if(this.answerArr.length && (that.currentQuestion.questionType === 1||that.currentQuestion.questionType === 3)) {
 					if (this.currentQuestion.isDoIt ===1) {
-						this.styleArr[this.currentSubject-1] = 1
+						this.styleArr[(this.currentSubject-1)%200] = 1
 					} else {
-						this.styleArr[this.currentSubject-1] = 0
+						this.styleArr[(this.currentSubject-1)%200] = 0
 					}
 				} else {
-					this.styleArr[this.currentSubject-1] = 2
+					this.styleArr[(this.currentSubject-1)%200] = 2
 				}
-				console.log(this.answerArr)
 			},
 			submitHandle() {
 				const that = this
-				console.log(this.answerArr)
 				if (this.answerArr.sort().toString() === this.currentQuestion.rightAnswerList.toString()) {
 					this.currentQuestion.isDoIt = 1
 				} else {
@@ -363,7 +391,6 @@ import { formatTime } from '../../utils/common.js'
 				this.$ajax({url: url, method: 'POST', data: data}, function(res) {
 					if(res.status) {
 						that.answerArr = []
-						console.log('成功')
 					}
 				})
 				//做过样式
@@ -376,7 +403,6 @@ import { formatTime } from '../../utils/common.js'
 				} else {
 					this.styleArr[this.currentSubject-1] = 2
 				}
-				console.log(this.styleArr[this.currentSubject-1])
 			},
 			collectionHandle() {
 				const that = this
@@ -438,8 +464,8 @@ import { formatTime } from '../../utils/common.js'
 	}
 	.title {
 		padding-bottom: 10px;
-		line-height: 24px;
-		font-size: 14px;
+		line-height: 30px;
+		font-size: 16px;
 	}
 	.radio {
 		display: block;
@@ -505,7 +531,7 @@ import { formatTime } from '../../utils/common.js'
 		border-radius: 5px;
 		padding:5px;
 		margin:5px;
-		font-size: 14px;
+		font-size: 16px;
 		/* background: rgb(219, 216, 216); */
 	}
 	.icon-unif060 {
@@ -555,11 +581,12 @@ import { formatTime } from '../../utils/common.js'
 	}
 	.page_style {
 		width: 100%;
-		height: 30px;
-		line-height: 30px;
+		height: 40px;
+		line-height: 40px;
 		color: #2d8cf0;
 		border-bottom: 1px solid #2d8cf0;
 		margin-bottom: 10px;
+		font-size: 14px;
 	}
 	.page_bottom {
 		width: 100%;
@@ -568,5 +595,6 @@ import { formatTime } from '../../utils/common.js'
 		color: #2d8cf0;
 		border-top: 1px solid #2d8cf0;
 		margin-top: 10px;
+		font-size: 14px;
 	}
 </style>
